@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { StatusBadge } from '../ui/StatusBadge';
-import { ArrowLeft, User, Mail, Phone, MapPin, Calendar, Shield, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, User, Mail, Phone, Calendar, Shield, Plus, Trash2 } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import type { NextOfKin } from '../../types';
 import toast from 'react-hot-toast';

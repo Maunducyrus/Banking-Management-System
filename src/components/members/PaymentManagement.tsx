@@ -132,20 +132,20 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({ onBack }) 
     }).format(amount);
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'paid':
-        return 'text-green-600';
-      case 'due':
-        return 'text-blue-600';
-      case 'overdue':
-        return 'text-red-600';
-      case 'partially_paid':
-        return 'text-yellow-600';
-      default:
-        return 'text-gray-600';
-    }
-  };
+  // const getStatusColor = (status: string) => {
+  //   switch (status) {
+  //     case 'paid':
+  //       return 'text-green-600';
+  //     case 'due':
+  //       return 'text-blue-600';
+  //     case 'overdue':
+  //       return 'text-red-600';
+  //     case 'partially_paid':
+  //       return 'text-yellow-600';
+  //     default:
+  //       return 'text-gray-600';
+  //   }
+  // };
 
   const getPaymentMethodIcon = (method: string) => {
     switch (method) {
@@ -168,7 +168,9 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({ onBack }) 
     ? paymentHistory
     : paymentHistory.filter(item => item.loanId === selectedLoan);
 
+  // const makePayment = (installmentId: string, amount: number) => {
   const makePayment = (installmentId: string, amount: number) => {
+    console.log(`Processing payment for installment: ${installmentId}`);
     // In real implementation, this would integrate with payment gateway
     toast.success(`Payment of ${formatCurrency(amount)} initiated successfully! You will be redirected to payment gateway.`);
   };
@@ -431,7 +433,7 @@ export const PaymentManagement: React.FC<PaymentManagementProps> = ({ onBack }) 
       {activeTab === 'instructions' && (
         <div className="space-y-6">
           {paymentInstructions.map((instruction) => {
-            const loan = loans.find(l => l.id === instruction.loanId);
+            // const loan = loans.find(l => l.id === instruction.loanId);
             return (
               <Card key={instruction.id}>
                 <div className="flex items-center justify-between mb-4">

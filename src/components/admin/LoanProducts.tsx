@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
-import { StatusBadge } from '../ui/StatusBadge';
+// import { StatusBadge } from '../ui/StatusBadge';
 import { Search, Plus, Filter, Eye, CreditCard as Edit, Trash2, DollarSign } from 'lucide-react';
 import type { LoanProduct } from '../../types';
 import toast from 'react-hot-toast';

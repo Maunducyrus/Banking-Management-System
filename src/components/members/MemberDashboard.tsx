@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { StatusBadge } from '../ui/StatusBadge';
@@ -7,14 +7,14 @@ import {
   CreditCard, 
   FileText, 
   DollarSign, 
-  Calendar,
+  // Calendar,
   TrendingUp,
   AlertCircle,
   CheckCircle,
   Clock,
   Plus
 } from 'lucide-react';
-import { useAuth } from '../../contexts/AuthContext';
+// import { useAuth } from '../../contexts/AuthContext';
 import type { Member, Loan, Transaction, KYCDocument } from '../../types';
 
 interface MemberDashboardProps {
@@ -22,7 +22,7 @@ interface MemberDashboardProps {
 }
 
 export const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate }) => {
-  const { user } = useAuth();
+  // const { user } = useAuth();
 
   // Mock data for the current user
   const currentMember: Member = {
@@ -146,14 +146,14 @@ export const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate }) 
   const activeLoans = userLoans.filter(loan => loan.status === 'active').length;
   const creditScore = 750; // Mock credit score
 
-  const getKYCStatusColor = (status: string) => {
-    switch (status) {
-      case 'verified': return 'success';
-      case 'pending': return 'warning';
-      case 'rejected': return 'error';
-      default: return 'secondary';
-    }
-  };
+  // const getKYCStatusColor = (status: string) => {
+  //   switch (status) {
+  //     case 'verified': return 'success';
+  //     case 'pending': return 'warning';
+  //     case 'rejected': return 'error';
+  //     default: return 'secondary';
+  //   }
+  // };
 
   const getKYCStatusIcon = (status: string) => {
     switch (status) {
