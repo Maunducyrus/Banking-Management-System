@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { StatusBadge } from '../ui/StatusBadge';
-import { Search, Plus, Filter, Eye, Calendar, DollarSign } from 'lucide-react';
+import { Search, Plus, Filter, Eye 
+  // Calendar,
+  //  DollarSign
+   } from 'lucide-react';
 import type { Loan } from '../../types';
 import { getStorageData } from '../../utils/LocalStorage';
 
