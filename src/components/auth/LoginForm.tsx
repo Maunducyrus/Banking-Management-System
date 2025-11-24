@@ -33,8 +33,8 @@ export const LoginForm: React.FC = () => {
   };
 
   const fillUserCredentials = () => {
-    setEmail('user@loanmanagement.com');
-    setPassword('user123');
+    setEmail('member@loanmanagement.com');
+    setPassword('member123');
   };
 
   return (

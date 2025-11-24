@@ -4,55 +4,20 @@ import { Button } from '../ui/Button';
 // import { StatusBadge } from '../ui/StatusBadge';
 import { Search, Plus, Filter, Eye, CreditCard as Edit, Trash2, Shield, UserPlus } from 'lucide-react';
 import type { User } from '../../types';
+import { getStorageData, addUser, updateUser, deleteUser } from '../../utils/LocalStorage';
 import toast from 'react-hot-toast';
 
 export const UserManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
   const [showAddUser, setShowAddUser] = useState(false);
+  const [users, setUsers] = useState<User[]>([]);
   
-  const [users, setUsers] = useState<User[]>([
-    {
-      id: '1',
-      email: 'admin@loanmanagement.com',
-      firstName: 'System',
-      lastName: 'Administrator',
-      role: 'ADMIN',
-      status: 'active',
-      createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-01T00:00:00Z',
-    },
-    {
-      id: '2',
-      email: 'user@loanmanagement.com',
-      firstName: 'Test',
-      lastName: 'User',
-      role: 'USER',
-      status: 'active',
-      createdAt: '2024-01-15T10:30:00Z',
-      updatedAt: '2024-01-15T10:30:00Z',
-    },
-    {
-      id: '3',
-      email: 'manager@loanmanagement.com',
-      firstName: 'Loan',
-      lastName: 'Manager',
-      role: 'USER',
-      status: 'active',
-      createdAt: '2024-01-10T09:15:00Z',
-      updatedAt: '2024-01-20T14:45:00Z',
-    },
-    {
-      id: '4',
-      email: 'officer@loanmanagement.com',
-      firstName: 'Credit',
-      lastName: 'Officer',
-      role: 'USER',
-      status: 'suspended',
-      createdAt: '2024-01-05T11:00:00Z',
-      updatedAt: '2024-01-25T13:30:00Z',
-    }
-  ]);
+  // Load data from localStorage
+  React.useEffect(() => {
+    const data = getStorageData();
+    setUsers(data.users);
+  }, []);
 
   const [newUser, setNewUser] = useState({
     firstName: '',
@@ -79,15 +44,15 @@ export const UserManagement: React.FC = () => {
       return;
     }
 
-    const user: User = {
-      id: Date.now().toString(),
+    const user = {
       ...newUser,
-      status: 'active',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      status: 'active'
     };
 
-    setUsers(prev => [...prev, user]);
+    addUser(user);
+    const data = getStorageData();
+    setUsers(data.users);
+    
     setNewUser({ firstName: '', lastName: '', email: '', role: 'USER', password: '' });
     setShowAddUser(false);
     toast.success('User created successfully');
@@ -100,7 +65,9 @@ export const UserManagement: React.FC = () => {
     }
     
     if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
-      setUsers(prev => prev.filter(user => user.id !== userId));
+      deleteUser(userId);
+      const data = getStorageData();
+      setUsers(data.users);
       toast.success('User deleted successfully');
     }
   };
@@ -111,20 +78,16 @@ export const UserManagement: React.FC = () => {
       return;
     }
 
-    setUsers(prev => prev.map(user => 
-      user.id === userId 
-        ? { ...user, status: newStatus, updatedAt: new Date().toISOString() }
-        : user
-    ));
+    updateUser(userId, { status: newStatus });
+    const data = getStorageData();
+    setUsers(data.users);
     toast.success(`User status updated to ${newStatus}`);
   };
 
   const handleRoleChange = (userId: string, newRole: 'ADMIN' | 'USER') => {
-    setUsers(prev => prev.map(user => 
-      user.id === userId 
-        ? { ...user, role: newRole, updatedAt: new Date().toISOString() }
-        : user
-    ));
+    updateUser(userId, { role: newRole });
+    const data = getStorageData();
+    setUsers(data.users);
     toast.success(`User role updated to ${newRole}`);
   };
 

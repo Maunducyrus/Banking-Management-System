@@ -30,7 +30,7 @@ export const ReportsSection: React.FC = () => {
       color: 'green',
       stats: [
         { label: 'Active Loans', value: '1,234' },
-        { label: 'Total Portfolio', value: '$12.4M' },
+        { label: 'Total Portfolio', value: 'KSH 12.4M' },
         { label: 'Collection Rate', value: '94.2%' }
       ]
     },
@@ -40,8 +40,8 @@ export const ReportsSection: React.FC = () => {
       icon: DollarSign,
       color: 'amber',
       stats: [
-        { label: 'This Month', value: '$2.4M' },
-        { label: 'Last Month', value: '$2.1M' },
+        { label: 'This Month', value: 'KSH 2.4M' },
+        { label: 'Last Month', value: 'KSH 2.1M' },
         { label: 'Growth', value: '+14.3%' }
       ]
     },
@@ -51,8 +51,8 @@ export const ReportsSection: React.FC = () => {
       icon: TrendingUp,
       color: 'teal',
       stats: [
-        { label: 'Revenue MTD', value: '$456K' },
-        { label: 'Interest Earned', value: '$324K' },
+        { label: 'Revenue MTD', value: 'KSH 456K' },
+        { label: 'Interest Earned', value: 'KSH 324K' },
         { label: 'Operating Margin', value: '23.4%' }
       ]
     }

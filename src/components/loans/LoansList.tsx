@@ -2,74 +2,20 @@ import React, { useState } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { StatusBadge } from '../ui/StatusBadge';
-import { 
-  Search,
-   Plus,
-    Filter,
-     Eye,
-      // Calendar,
-      //  DollarSign
-       } from 'lucide-react';
+import { Search, Plus, Filter, Eye, Calendar, DollarSign } from 'lucide-react';
 import type { Loan } from '../../types';
+import { getStorageData } from '../../utils/LocalStorage';
 
 export const LoansList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [loans, setLoans] = useState<Loan[]>([]);
 
-  // Mock data - replace with API call
-  const loans: Loan[] = [
-    {
-      id: '1',
-      loanNumber: 'LN001234',
-      memberId: '1',
-      productId: '1',
-      principalAmount: 50000,
-      interestRate: 12.5,
-      term: 12,
-      startDate: '2024-01-15',
-      maturityDate: '2025-01-15',
-      status: 'active',
-      balancePrincipal: 35000,
-      balanceInterest: 2500,
-      nextDueDate: '2024-02-15',
-      createdAt: '2024-01-15T10:30:00Z',
-      disbursedAt: '2024-01-16T14:00:00Z'
-    },
-    {
-      id: '2',
-      loanNumber: 'LN001235',
-      memberId: '2',
-      productId: '2',
-      principalAmount: 25000,
-      interestRate: 10.0,
-      term: 6,
-      startDate: '2024-01-10',
-      maturityDate: '2024-07-10',
-      status: 'active',
-      balancePrincipal: 15000,
-      balanceInterest: 800,
-      nextDueDate: '2024-02-10',
-      createdAt: '2024-01-10T09:15:00Z',
-      disbursedAt: '2024-01-11T11:30:00Z'
-    },
-    {
-      id: '3',
-      loanNumber: 'LN001236',
-      memberId: '3',
-      productId: '1',
-      principalAmount: 75000,
-      interestRate: 15.0,
-      term: 24,
-      startDate: '2023-12-01',
-      maturityDate: '2025-12-01',
-      status: 'defaulted',
-      balancePrincipal: 68000,
-      balanceInterest: 8500,
-      nextDueDate: '2024-01-01',
-      createdAt: '2023-12-01T08:00:00Z',
-      disbursedAt: '2023-12-02T10:15:00Z'
-    }
-  ];
+  // Load data from localStorage
+  React.useEffect(() => {
+    const data = getStorageData();
+    setLoans(data.loans);
+  }, []);
 
   const filteredLoans = loans.filter(loan => {
     const matchesSearch = 
@@ -84,7 +30,7 @@ export const LoansList: React.FC = () => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-KE', {
       style: 'currency',
-      currency: 'KES'
+      currency: 'KSH'
     }).format(amount);
   };
 
@@ -101,7 +47,7 @@ export const LoansList: React.FC = () => {
         </div>
         <Button className="flex items-center gap-2">
           <Plus size={16} />
-          Disburse Loan
+          View Disbursements
         </Button>
       </div>
 
@@ -185,9 +131,11 @@ export const LoansList: React.FC = () => {
                     <StatusBadge status={loan.status} variant="loan" />
                   </td>
                   <td className="py-3 px-4">
+                    {/* <p className="text-sm text-gray-900">
+                      {new Date(loan.nextDueDate).toLocaleDateString()}
+                    </p> */}
                     <p className="text-sm text-gray-900">
                       {loan.nextDueDate ? new Date(loan.nextDueDate).toLocaleDateString() : 'N/A'}
-                      {/* {new Date(loan.nextDueDate).toLocaleDateString()} */}
                     </p>
                   </td>
                   <td className="py-3 px-4">

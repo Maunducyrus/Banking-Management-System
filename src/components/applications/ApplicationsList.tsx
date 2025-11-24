@@ -2,72 +2,32 @@ import React, { useState } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { StatusBadge } from '../ui/StatusBadge';
-import { Search, Filter, Eye, CheckCircle, XCircle } from 'lucide-react';
+import { Search, Filter, Eye, CheckCircle, XCircle, Plus } from 'lucide-react';
 import type { LoanApplication } from '../../types';
+import { getStorageData, updateApplication } from '../../utils/LocalStorage';
+import toast from 'react-hot-toast';
 
 export const ApplicationsList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [showAddApplication, setShowAddApplication] = useState(false);
+  const [applications, setApplications] = useState<LoanApplication[]>([]);
+  const [newApplication, setNewApplication] = useState({
+    memberId: '',
+    productId: '',
+    amountRequested: '',
+    term: '',
+    purpose: ''
+  });
 
-  // Mock data - replace with API call
-  const applications: LoanApplication[] = [
-    {
-      id: '1',
-      memberId: '1',
-      productId: '1',
-      amountRequested: 50000,
-      term: 12,
-      purpose: 'Business expansion',
-      status: 'under_review',
-      creditScore: 720,
-      applicationData: {},
-      createdAt: '2024-01-25T10:30:00Z',
-      updatedAt: '2024-01-25T10:30:00Z',
-      submittedBy: '1'
-    },
-    {
-      id: '2',
-      memberId: '2',
-      productId: '2',
-      amountRequested: 25000,
-      term: 6,
-      purpose: 'Home improvement',
-      status: 'submitted',
-      creditScore: 680,
-      applicationData: {},
-      createdAt: '2024-01-24T15:45:00Z',
-      updatedAt: '2024-01-24T15:45:00Z',
-      submittedBy: '2'
-    },
-    {
-      id: '3',
-      memberId: '3',
-      productId: '1',
-      amountRequested: 75000,
-      term: 24,
-      purpose: 'Debt consolidation',
-      status: 'approved',
-      creditScore: 750,
-      applicationData: {},
-      createdAt: '2024-01-20T09:15:00Z',
-      updatedAt: '2024-01-23T14:20:00Z',
-      submittedBy: '3'
-    },
-    {
-      id: '4',
-      memberId: '1',
-      productId: '3',
-      amountRequested: 15000,
-      term: 3,
-      purpose: 'Emergency expenses',
-      status: 'rejected',
-      creditScore: 580,
-      applicationData: {},
-      createdAt: '2024-01-18T11:00:00Z',
-      updatedAt: '2024-01-22T16:30:00Z',
-      submittedBy: '1'
-    }
-  ];
+  // Load data from localStorage
+  React.useEffect(() => {
+    const data = getStorageData();
+    setApplications(data.applications);
+  }, []);
+
+  const members = getStorageData().members;
+  const products = getStorageData().products;
 
   const filteredApplications = applications.filter(app => {
     const matchesSearch = 
@@ -80,10 +40,56 @@ export const ApplicationsList: React.FC = () => {
     return matchesSearch && matchesStatus;
   });
 
+  const handleAddApplication = () => {
+    if (!newApplication.memberId || !newApplication.productId || !newApplication.amountRequested || !newApplication.term || !newApplication.purpose) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    const application = {
+      ...newApplication,
+      amountRequested: parseFloat(newApplication.amountRequested),
+      term: parseInt(newApplication.term),
+      status: 'submitted',
+      creditScore: Math.floor(Math.random() * 200) + 600,
+      applicationData: {},
+      submittedBy: 'admin'
+    };
+
+    const data = getStorageData();
+    const updatedApplications = [...data.applications, {
+      ...application,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }];
+    
+    data.applications = updatedApplications;
+    localStorage.setItem('p2p_loan_data', JSON.stringify(data));
+    setApplications(updatedApplications);
+    
+    setNewApplication({
+      memberId: '',
+      productId: '',
+      amountRequested: '',
+      term: '',
+      purpose: ''
+    });
+    setShowAddApplication(false);
+    toast.success('Loan application created successfully!');
+  };
+
+  const handleStatusChange = (applicationId: string, newStatus: string) => {
+    updateApplication(applicationId, { status: newStatus });
+    const data = getStorageData();
+    setApplications(data.applications);
+    toast.success(`Application ${newStatus} successfully!`);
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-KE', {
       style: 'currency',
-      currency: 'KES'
+      currency: 'KSH'
     }).format(amount);
   };
 
@@ -103,7 +109,107 @@ export const ApplicationsList: React.FC = () => {
           <h2 className="text-2xl font-bold text-gray-900">Loan Applications</h2>
           <p className="text-gray-600">Review and process loan applications - {filteredApplications.length} applications found</p>
         </div>
+        <Button 
+          onClick={() => setShowAddApplication(true)}
+          className="flex items-center gap-2"
+        >
+          <Plus size={16} />
+          Add Application
+        </Button>
       </div>
+
+      {/* Add Application Form */}
+      {showAddApplication && (
+        <Card>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Create New Loan Application</h3>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Member *
+              </label>
+              <select
+                value={newApplication.memberId}
+                onChange={(e) => setNewApplication(prev => ({ ...prev, memberId: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select Member</option>
+                {members.map(member => (
+                  <option key={member.id} value={member.id}>
+                    {member.firstName} {member.lastName} - {member.email}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Loan Product *
+              </label>
+              <select
+                value={newApplication.productId}
+                onChange={(e) => setNewApplication(prev => ({ ...prev, productId: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">Select Product</option>
+                {products.map(product => (
+                  <option key={product.id} value={product.id}>
+                    {product.name} - {product.interestRate}%
+                  </option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Amount Requested *
+              </label>
+              <input
+                type="number"
+                value={newApplication.amountRequested}
+                onChange={(e) => setNewApplication(prev => ({ ...prev, amountRequested: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter amount"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Term (months) *
+              </label>
+              <input
+                type="number"
+                value={newApplication.term}
+                onChange={(e) => setNewApplication(prev => ({ ...prev, term: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Enter term"
+              />
+            </div>
+            
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Purpose *
+              </label>
+              <textarea
+                value={newApplication.purpose}
+                onChange={(e) => setNewApplication(prev => ({ ...prev, purpose: e.target.value }))}
+                rows={3}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="Describe the purpose of this loan"
+              />
+            </div>
+          </div>
+          
+          <div className="flex justify-end gap-4 mt-6">
+            <Button variant="ghost" onClick={() => setShowAddApplication(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddApplication}>
+              Create Application
+            </Button>
+          </div>
+        </Card>
+      )}
 
       {/* Filters */}
       <Card>
@@ -195,15 +301,37 @@ export const ApplicationsList: React.FC = () => {
                       </Button>
                       {application.status === 'under_review' && (
                         <>
-                          <Button variant="ghost" size="sm" className="flex items-center gap-1 text-green-600 hover:text-green-700">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="flex items-center gap-1 text-green-600 hover:text-green-700"
+                            onClick={() => handleStatusChange(application.id, 'approved')}
+                          >
                             <CheckCircle size={14} />
                             Approve
                           </Button>
-                          <Button variant="ghost" size="sm" className="flex items-center gap-1 text-red-600 hover:text-red-700">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                            onClick={() => handleStatusChange(application.id, 'rejected')}
+                          >
                             <XCircle size={14} />
                             Reject
                           </Button>
                         </>
+                        // <>
+                        //   <Button variant="ghost" size="sm" className="flex items-center gap-1 text-green-600 hover:text-green-700">
+                        //     onClick={() => handleStatusChange(application.id, 'approved')}
+                        //     <CheckCircle size={14} />
+                        //     Approve
+                        //   </Button>
+                        //   <Button variant="ghost" size="sm" className="flex items-center gap-1 text-red-600 hover:text-red-700">
+                        //     onClick={() => handleStatusChange(application.id, 'rejected')}
+                        //     <XCircle size={14} />
+                        //     Reject
+                        //   </Button>
+                        // </>
                       )}
                     </div>
                   </td>

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
-import { ArrowLeft, Plus, Trash2, Upload } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Upload, FileText, X } from 'lucide-react';
 import type { LoanProduct, Guarantor } from '../../types';
+import { getStorageData, addApplication } from '../../utils/LocalStorage';
 import toast from 'react-hot-toast';
 
 interface LoanApplicationProps {
@@ -21,6 +22,8 @@ export const LoanApplication: React.FC<LoanApplicationProps> = ({ onBack }) => {
     employerName: '',
     guarantors: [] as Omit<Guarantor, 'id' | 'loanApplicationId' | 'status' | 'createdAt'>[]
   });
+
+  const [uploadedDocuments, setUploadedDocuments] = useState<File[]>([]);
 
   // Mock loan products
   const loanProducts: LoanProduct[] = [
@@ -76,6 +79,37 @@ export const LoanApplication: React.FC<LoanApplicationProps> = ({ onBack }) => {
       updatedAt: '2024-01-01T00:00:00Z'
     }
   ];
+
+  const handleFileUpload = (files: FileList | null) => {
+    if (!files) return;
+    
+    const validFiles = Array.from(files).filter(file => {
+      const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      
+      if (!validTypes.includes(file.type)) {
+        toast.error(`${file.name}: Only JPG, PNG, and PDF files are allowed`);
+        return false;
+      }
+      
+      if (file.size > maxSize) {
+        toast.error(`${file.name}: File size must be less than 5MB`);
+        return false;
+      }
+      
+      return true;
+    });
+
+    setUploadedDocuments(prev => [...prev, ...validFiles]);
+    if (validFiles.length > 0) {
+      toast.success(`${validFiles.length} document(s) uploaded successfully!`);
+    }
+  };
+
+  const removeDocument = (index: number) => {
+    setUploadedDocuments(prev => prev.filter((_, i) => i !== index));
+    toast.success('Document removed successfully!');
+  };
 
   const selectedProduct = loanProducts.find(p => p.id === formData.productId);
 
@@ -141,6 +175,29 @@ export const LoanApplication: React.FC<LoanApplicationProps> = ({ onBack }) => {
       toast.error('Please complete your employment information');
       return;
     }
+
+ // Add numeric validation here
+  const amount = parseFloat(formData.amountRequested);
+  const term = parseInt(formData.term);
+  const monthlyIncome = parseFloat(formData.monthlyIncome);
+
+  // Check if conversions resulted in valid numbers
+  if (isNaN(amount) || amount <= 0) {
+    toast.error('Please enter a valid loan amount');
+    return;
+  }
+
+  if (isNaN(term) || term <= 0) {
+    toast.error('Please enter a valid loan term');
+    return;
+  }
+
+  if (isNaN(monthlyIncome) || monthlyIncome <= 0) {
+    toast.error('Please enter a valid monthly income');
+    return;
+  }    
+
+  // end
     if (selectedProduct) {
       const amount = parseFloat(formData.amountRequested);
       const term = parseInt(formData.term);
@@ -156,7 +213,33 @@ export const LoanApplication: React.FC<LoanApplicationProps> = ({ onBack }) => {
       }
     }
 
-    // Submit application
+    // Create application object
+    const applicationData = {
+      memberId: '1', // Current user ID
+      productId: formData.productId,
+      amountRequested: parseFloat(formData.amountRequested),
+      term: parseInt(formData.term),
+      purpose: formData.purpose,
+      status: 'submitted',
+      creditScore: Math.floor(Math.random() * 200) + 600, // Mock credit score
+      applicationData: {
+        monthlyIncome: parseFloat(formData.monthlyIncome),
+        employmentStatus: formData.employmentStatus,
+        employerName: formData.employerName,
+        guarantors: formData.guarantors
+      },
+      documents: uploadedDocuments.map(file => ({
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        uploadedAt: new Date().toISOString()
+      })),
+      submittedBy: '1'
+    };
+
+    // Save to localStorage
+    addApplication(applicationData);
+    
     toast.success('Loan application submitted successfully!');
     onBack();
   };
@@ -164,7 +247,7 @@ export const LoanApplication: React.FC<LoanApplicationProps> = ({ onBack }) => {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-KE', {
       style: 'currency',
-      currency: 'KES'
+      currency: 'KSH'
     }).format(amount);
   };
 
@@ -389,12 +472,80 @@ export const LoanApplication: React.FC<LoanApplicationProps> = ({ onBack }) => {
                 <div className="p-4 bg-gray-50 rounded-lg">
                   <h4 className="font-medium text-gray-900 mb-2">Supporting Documents</h4>
                   <p className="text-sm text-gray-600 mb-3">
-                    Upload documents to support your application (optional but recommended)
+                    Upload documents to support your application
                   </p>
-                  <Button variant="ghost" className="flex items-center gap-2">
-                    <Upload size={16} />
-                    Upload Documents
-                  </Button>
+                  
+                  {/* Drag and Drop Area */}
+                  <div
+                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center mb-4 hover:border-gray-400 transition-colors"
+                    onDragOver={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.add('border-blue-500', 'bg-blue-50');
+                    }}
+                    onDragLeave={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.remove('border-blue-500', 'bg-blue-50');
+                    }}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      e.currentTarget.classList.remove('border-blue-500', 'bg-blue-50');
+                      handleFileUpload(e.dataTransfer.files);
+                    }}
+                  >
+                    <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600 mb-2">
+                      Drag and drop files here or click to browse
+                    </p>
+                    <p className="text-xs text-gray-500 mb-3">
+                      Supported: JPG, PNG, PDF (Max 5MB each)
+                    </p>
+                    
+                  <input
+                    type="file"
+                    multiple
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    onChange={(e) => handleFileUpload(e.target.files)}
+                    className="hidden"
+                    id="document-upload"
+                  />
+                  <label htmlFor="document-upload">
+                    <Button 
+                      type="button"
+                      variant="secondary" 
+                      className="flex items-center gap-2 cursor-pointer"
+                      onClick={() => document.getElementById('document-upload')?.click()}
+                    >
+                      <Upload size={16} />
+                      Upload Documents
+                    </Button>
+                  </label>
+                  </div>
+                  
+                  {uploadedDocuments.length > 0 && (
+                    <div className="mt-4 space-y-2">
+                      <h5 className="font-medium text-gray-900">Uploaded Documents:</h5>
+                      {uploadedDocuments.map((file, index) => (
+                        <div key={index} className="flex items-center justify-between p-2 bg-white rounded border">
+                          <div className="flex items-center">
+                            <FileText className="w-4 h-4 text-gray-400 mr-2" />
+                            <span className="text-sm text-gray-900">{file.name}</span>
+                            <span className="text-xs text-gray-500 ml-2">
+                              ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                            </span>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            type="button"
+                            onClick={() => removeDocument(index)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <X size={14} />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
