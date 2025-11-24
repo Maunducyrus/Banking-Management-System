@@ -16,9 +16,9 @@ const HARDCODED_USERS: User[] = [
   },
   {
     id: '2',
-    email: 'user@loanmanagement.com',
+    email: 'member@loanmanagement.com',
     firstName: 'Test',
-    lastName: 'User',
+    lastName: 'Member',
     role: 'USER',
     status: 'active',
     createdAt: new Date().toISOString(),
