@@ -3,7 +3,9 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { StatusBadge } from '../ui/StatusBadge';
 import { Search, Filter, DollarSign, Calendar, User, CheckCircle, AlertCircle } from 'lucide-react';
-import type { LoanApplication, Member } from '../../types';
+import type { LoanApplication, 
+  // Member 
+} from '../../types';
 import { getStorageData, updateApplication, addLoan } from '../../utils/LocalStorage';
 import toast from 'react-hot-toast';
 

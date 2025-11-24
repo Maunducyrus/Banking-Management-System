@@ -3,7 +3,9 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { ArrowLeft, Plus, Trash2, Upload, FileText, X } from 'lucide-react';
 import type { LoanProduct, Guarantor } from '../../types';
-import { getStorageData, addApplication } from '../../utils/LocalStorage';
+import { 
+  // getStorageData, 
+  addApplication } from '../../utils/LocalStorage';
 import toast from 'react-hot-toast';
 
 interface LoanApplicationProps {
