@@ -19,6 +19,8 @@ import { LoanProducts } from './components/admin/LoanProducts';
 import { LoanDisbursement } from './components/admin/LoanDisbursement';
 import { MemberEdit } from './components/admin/MemberEdit';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
+import KinBeneficiaries from './components/members/KinBeneficiaries';
+import ContributionsPage from './components/contributions/ContributionsPage';
 
 const AppContent: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -103,6 +105,10 @@ const handleNavigation = (view: string) => {
         return <LoanProducts />;
       case 'loan-disbursement':
         return <LoanDisbursement />;
+      case 'contributions':
+        return <ContributionsPage />;
+      case 'kin-beneficiaries':
+        return <KinBeneficiaries />;
       case 'reports':
         return <ReportsSection />;
       case 'products':

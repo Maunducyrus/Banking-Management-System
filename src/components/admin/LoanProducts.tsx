@@ -1,787 +1,179 @@
-// import React, { useState } from 'react';
-// import { Card } from '../ui/Card';
-// import { Button } from '../ui/Button';
-// // import { StatusBadge } from '../ui/StatusBadge';
-// import { Search, Plus, Filter, Eye, CreditCard as Edit, Trash2, DollarSign } from 'lucide-react';
-// import type { LoanProduct } from '../../types';
-// import toast from 'react-hot-toast';
-
-// export const LoanProducts: React.FC = () => {
-//   const [searchTerm, setSearchTerm] = useState('');
-//   const [statusFilter, setStatusFilter] = useState('all');
-//   const [showAddProduct, setShowAddProduct] = useState(false);
-  
-//   const [products, setProducts] = useState<LoanProduct[]>([
-//     {
-//       id: '1',
-//       code: 'M-LOAN',
-//       name: 'Monthly Loan',
-//       description: 'Short-term loan with monthly repayments for quick financial needs',
-//       interestType: 'reducing',
-//       interestRate: 12.5,
-//       minAmount: 5000,
-//       maxAmount: 100000,
-//       minTerm: 3,
-//       maxTerm: 12,
-//       repaymentFrequency: 'monthly',
-//       gracePeriodDays: 5,
-//       status: 'active',
-//       createdBy: 'admin',
-//       updatedAt: '2024-01-01T00:00:00Z'
-//     },
-//     {
-//       id: '2',
-//       code: 'Q-LOAN',
-//       name: 'Quarterly Loan',
-//       description: 'Medium-term loan with quarterly repayments for business expansion',
-//       interestType: 'reducing',
-//       interestRate: 10.0,
-//       minAmount: 10000,
-//       maxAmount: 200000,
-//       minTerm: 3,
-//       maxTerm: 24,
-//       repaymentFrequency: 'monthly',
-//       gracePeriodDays: 7,
-//       status: 'active',
-//       createdBy: 'admin',
-//       updatedAt: '2024-01-01T00:00:00Z'
-//     },
-//     {
-//       id: '3',
-//       code: 'Y-LOAN',
-//       name: 'Yearly Loan',
-//       description: 'Long-term loan with flexible repayments for major investments',
-//       interestType: 'declining_balance',
-//       interestRate: 8.5,
-//       minAmount: 25000,
-//       maxAmount: 500000,
-//       minTerm: 12,
-//       maxTerm: 60,
-//       repaymentFrequency: 'monthly',
-//       gracePeriodDays: 10,
-//       status: 'active',
-//       createdBy: 'admin',
-//       updatedAt: '2024-01-01T00:00:00Z'
-//     },
-//     {
-//       id: '4',
-//       code: 'E-LOAN',
-//       name: 'Emergency Loan',
-//       description: 'Quick emergency loan for urgent financial needs',
-//       interestType: 'flat',
-//       interestRate: 15.0,
-//       minAmount: 1000,
-//       maxAmount: 25000,
-//       minTerm: 1,
-//       maxTerm: 6,
-//       repaymentFrequency: 'monthly',
-//       gracePeriodDays: 3,
-//       status: 'inactive',
-//       createdBy: 'admin',
-//       updatedAt: '2024-01-01T00:00:00Z'
-//     }
-//   ]);
-
-//   const [newProduct, setNewProduct] = useState({
-//     code: '',
-//     name: '',
-//     description: '',
-//     interestType: 'reducing' as 'flat' | 'reducing' | 'declining_balance',
-//     interestRate: 0,
-//     minAmount: 0,
-//     maxAmount: 0,
-//     minTerm: 0,
-//     maxTerm: 0,
-//     repaymentFrequency: 'monthly' as 'monthly' | 'weekly' | 'daily',
-//     gracePeriodDays: 0
-//   });
-
-//   const filteredProducts = products.filter(product => {
-//     const matchesSearch = 
-//       product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//       product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-//       product.description.toLowerCase().includes(searchTerm.toLowerCase());
-
-//     const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
-
-//     return matchesSearch && matchesStatus;
-//   });
-
-//   const handleAddProduct = () => {
-//     if (!newProduct.code || !newProduct.name || !newProduct.description) {
-//       toast.error('Please fill in all required fields');
-//       return;
-//     }
-
-//     if (newProduct.minAmount >= newProduct.maxAmount) {
-//       toast.error('Maximum amount must be greater than minimum amount');
-//       return;
-//     }
-
-//     if (newProduct.minTerm >= newProduct.maxTerm) {
-//       toast.error('Maximum term must be greater than minimum term');
-//       return;
-//     }
-
-//     const product: LoanProduct = {
-//       id: Date.now().toString(),
-//       ...newProduct,
-//       status: 'active',
-//       createdBy: 'admin',
-//       updatedAt: new Date().toISOString()
-//     };
-
-//     setProducts(prev => [...prev, product]);
-//     setNewProduct({
-//       code: '',
-//       name: '',
-//       description: '',
-//       interestType: 'reducing',
-//       interestRate: 0,
-//       minAmount: 0,
-//       maxAmount: 0,
-//       minTerm: 0,
-//       maxTerm: 0,
-//       repaymentFrequency: 'monthly',
-//       gracePeriodDays: 0
-//     });
-//     setShowAddProduct(false);
-//     toast.success('Loan product created successfully');
-//   };
-
-//   const handleDeleteProduct = (productId: string) => {
-//     if (window.confirm('Are you sure you want to delete this loan product? This action cannot be undone.')) {
-//       setProducts(prev => prev.filter(product => product.id !== productId));
-//       toast.success('Loan product deleted successfully');
-//     }
-//   };
-
-//   const handleStatusChange = (productId: string, newStatus: 'active' | 'inactive') => {
-//     setProducts(prev => prev.map(product => 
-//       product.id === productId 
-//         ? { ...product, status: newStatus, updatedAt: new Date().toISOString() }
-//         : product
-//     ));
-//     toast.success(`Product status updated to ${newStatus}`);
-//   };
-
-//   const formatCurrency = (amount: number) => {
-//     return new Intl.NumberFormat('en-KE', {
-//       style: 'currency',
-//       currency: 'KES'
-//     }).format(amount);
-//   };
-
-//   return (
-//     <div className="space-y-6">
-//       {/* Header */}
-//       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-//         <div>
-//           <h2 className="text-2xl font-bold text-gray-900">Loan Products</h2>
-//           <p className="text-gray-600">Manage loan products and configurations - {filteredProducts.length} products found</p>
-//         </div>
-//         <Button 
-//           onClick={() => setShowAddProduct(true)}
-//           className="flex items-center gap-2"
-//         >
-//           <Plus size={16} />
-//           Add Product
-//         </Button>
-//       </div>
-
-//       {/* Add Product Form */}
-//       {showAddProduct && (
-//         <Card>
-//           <div className="flex items-center gap-2 mb-4">
-//             <DollarSign className="w-5 h-5 text-blue-600" />
-//             <h3 className="text-lg font-semibold text-gray-900">Add New Loan Product</h3>
-//           </div>
-          
-//           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-2">
-//                 Product Code *
-//               </label>
-//               <input
-//                 type="text"
-//                 value={newProduct.code}
-//                 onChange={(e) => setNewProduct(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                 placeholder="e.g., M-LOAN"
-//               />
-//             </div>
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-2">
-//                 Product Name *
-//               </label>
-//               <input
-//                 type="text"
-//                 value={newProduct.name}
-//                 onChange={(e) => setNewProduct(prev => ({ ...prev, name: e.target.value }))}
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                 placeholder="e.g., Monthly Loan"
-//               />
-//             </div>
-//             <div className="md:col-span-2">
-//               <label className="block text-sm font-medium text-gray-700 mb-2">
-//                 Description *
-//               </label>
-//               <textarea
-//                 value={newProduct.description}
-//                 onChange={(e) => setNewProduct(prev => ({ ...prev, description: e.target.value }))}
-//                 rows={3}
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                 placeholder="Describe the loan product..."
-//               />
-//             </div>
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-2">
-//                 Interest Type *
-//               </label>
-//               <select
-//                 value={newProduct.interestType}
-//                 onChange={(e) => setNewProduct(prev => ({ ...prev, interestType: e.target.value as any }))}
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//               >
-//                 <option value="flat">Flat Rate</option>
-//                 <option value="reducing">Reducing Balance</option>
-//                 <option value="declining_balance">Declining Balance</option>
-//               </select>
-//             </div>
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-2">
-//                 Interest Rate (%) *
-//               </label>
-//               <input
-//                 type="number"
-//                 step="0.1"
-//                 value={newProduct.interestRate}
-//                 onChange={(e) => setNewProduct(prev => ({ ...prev, interestRate: parseFloat(e.target.value) || 0 }))}
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                 placeholder="e.g., 12.5"
-//               />
-//             </div>
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-2">
-//                 Minimum Amount *
-//               </label>
-//               <input
-//                 type="number"
-//                 value={newProduct.minAmount}
-//                 onChange={(e) => setNewProduct(prev => ({ ...prev, minAmount: parseInt(e.target.value) || 0 }))}
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                 placeholder="e.g., 5000"
-//               />
-//             </div>
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-2">
-//                 Maximum Amount *
-//               </label>
-//               <input
-//                 type="number"
-//                 value={newProduct.maxAmount}
-//                 onChange={(e) => setNewProduct(prev => ({ ...prev, maxAmount: parseInt(e.target.value) || 0 }))}
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                 placeholder="e.g., 100000"
-//               />
-//             </div>
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-2">
-//                 Minimum Term (months) *
-//               </label>
-//               <input
-//                 type="number"
-//                 value={newProduct.minTerm}
-//                 onChange={(e) => setNewProduct(prev => ({ ...prev, minTerm: parseInt(e.target.value) || 0 }))}
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                 placeholder="e.g., 3"
-//               />
-//             </div>
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-2">
-//                 Maximum Term (months) *
-//               </label>
-//               <input
-//                 type="number"
-//                 value={newProduct.maxTerm}
-//                 onChange={(e) => setNewProduct(prev => ({ ...prev, maxTerm: parseInt(e.target.value) || 0 }))}
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                 placeholder="e.g., 12"
-//               />
-//             </div>
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-2">
-//                 Repayment Frequency *
-//               </label>
-//               <select
-//                 value={newProduct.repaymentFrequency}
-//                 onChange={(e) => setNewProduct(prev => ({ ...prev, repaymentFrequency: e.target.value as any }))}
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//               >
-//                 <option value="daily">Daily</option>
-//                 <option value="weekly">Weekly</option>
-//                 <option value="monthly">Monthly</option>
-//               </select>
-//             </div>
-//             <div>
-//               <label className="block text-sm font-medium text-gray-700 mb-2">
-//                 Grace Period (days) *
-//               </label>
-//               <input
-//                 type="number"
-//                 value={newProduct.gracePeriodDays}
-//                 onChange={(e) => setNewProduct(prev => ({ ...prev, gracePeriodDays: parseInt(e.target.value) || 0 }))}
-//                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                 placeholder="e.g., 5"
-//               />
-//             </div>
-//           </div>
-          
-//           <div className="flex justify-end gap-4 mt-6">
-//             <Button variant="ghost" onClick={() => setShowAddProduct(false)}>
-//               Cancel
-//             </Button>
-//             <Button onClick={handleAddProduct}>
-//               Create Product
-//             </Button>
-//           </div>
-//         </Card>
-//       )}
-
-//       {/* Filters */}
-//       <Card>
-//         <div className="flex flex-col sm:flex-row gap-4">
-//           <div className="flex-1">
-//             <div className="relative">
-//               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-//               <input
-//                 type="text"
-//                 placeholder="Search products..."
-//                 value={searchTerm}
-//                 onChange={(e) => setSearchTerm(e.target.value)}
-//                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-//               />
-//             </div>
-//           </div>
-//           <div className="flex items-center gap-2">
-//             <Filter size={16} className="text-gray-400" />
-//             <select
-//               value={statusFilter}
-//               onChange={(e) => setStatusFilter(e.target.value)}
-//               className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-//             >
-//               <option value="all">All Status</option>
-//               <option value="active">Active</option>
-//               <option value="inactive">Inactive</option>
-//             </select>
-//           </div>
-//         </div>
-//       </Card>
-
-//       {/* Products Table */}
-//       <Card padding="sm">
-//         <div className="overflow-x-auto">
-//           <table className="w-full">
-//             <thead>
-//               <tr className="border-b border-gray-200">
-//                 <th className="text-left py-3 px-4 font-medium text-gray-700">Product</th>
-//                 <th className="text-left py-3 px-4 font-medium text-gray-700">Interest</th>
-//                 <th className="text-left py-3 px-4 font-medium text-gray-700">Amount Range</th>
-//                 <th className="text-left py-3 px-4 font-medium text-gray-700">Term Range</th>
-//                 <th className="text-left py-3 px-4 font-medium text-gray-700">Status</th>
-//                 <th className="text-left py-3 px-4 font-medium text-gray-700">Actions</th>
-//               </tr>
-//             </thead>
-//             <tbody>
-//               {filteredProducts.map((product) => (
-//                 <tr key={product.id} className="border-b border-gray-100 hover:bg-gray-50">
-//                   <td className="py-3 px-4">
-//                     <div>
-//                       <p className="font-medium text-gray-900">{product.name}</p>
-//                       <p className="text-sm text-gray-600">{product.code}</p>
-//                       <p className="text-xs text-gray-500 mt-1">{product.description}</p>
-//                     </div>
-//                   </td>
-//                   <td className="py-3 px-4">
-//                     <div>
-//                       <p className="font-medium text-gray-900">{product.interestRate}%</p>
-//                       <p className="text-sm text-gray-600 capitalize">{product.interestType.replace('_', ' ')}</p>
-//                     </div>
-//                   </td>
-//                   <td className="py-3 px-4">
-//                     <div>
-//                       <p className="text-sm text-gray-900">
-//                         {formatCurrency(product.minAmount)} - {formatCurrency(product.maxAmount)}
-//                       </p>
-//                     </div>
-//                   </td>
-//                   <td className="py-3 px-4">
-//                     <div>
-//                       <p className="text-sm text-gray-900">
-//                         {product.minTerm} - {product.maxTerm} months
-//                       </p>
-//                       <p className="text-xs text-gray-600 capitalize">{product.repaymentFrequency} payments</p>
-//                     </div>
-//                   </td>
-//                   <td className="py-3 px-4">
-//                     <select
-//                       value={product.status}
-//                       onChange={(e) => handleStatusChange(product.id, e.target.value as 'active' | 'inactive')}
-//                       className="text-xs px-2 py-1 rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
-//                     >
-//                       <option value="active">Active</option>
-//                       <option value="inactive">Inactive</option>
-//                     </select>
-//                   </td>
-//                   <td className="py-3 px-4">
-//                     <div className="flex items-center gap-1">
-//                       <Button variant="ghost" size="sm" className="flex items-center gap-1">
-//                         <Eye size={14} />
-//                         View
-//                       </Button>
-//                       <Button variant="ghost" size="sm" className="flex items-center gap-1 text-blue-600 hover:text-blue-700">
-//                         <Edit size={14} />
-//                         Edit
-//                       </Button>
-//                       <Button 
-//                         variant="ghost" 
-//                         size="sm" 
-//                         className="flex items-center gap-1 text-red-600 hover:text-red-700"
-//                         onClick={() => handleDeleteProduct(product.id)}
-//                       >
-//                         <Trash2 size={14} />
-//                         Delete
-//                       </Button>
-//                     </div>
-//                   </td>
-//                 </tr>
-//               ))}
-//             </tbody>
-//           </table>
-//         </div>
-
-//         {filteredProducts.length === 0 && (
-//           <div className="text-center py-8">
-//             <p className="text-gray-500">No loan products found matching your criteria.</p>
-//           </div>
-//         )}
-//       </Card>
-//     </div>
-//   );
-// };
-
-
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
-// import { StatusBadge } from '../ui/StatusBadge';
-import { Search, Plus, Filter, Eye, CreditCard as Edit, Trash2, DollarSign } from 'lucide-react';
-import type { LoanProduct } from '../../types';
+import { LoadingSpinner } from '../ui/LoadingSpinner';
+import { Search, Filter, Plus, Trash2, DollarSign, Edit2, X, RefreshCw } from 'lucide-react';
 import { getStorageData, addProduct, updateProduct, deleteProduct } from '../../utils/LocalStorage';
 import toast from 'react-hot-toast';
 
+const fmt = (n: number) =>
+  new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', maximumFractionDigits: 0 }).format(n);
+
+const EMPTY: any = {
+  code: '', name: '', description: '', interestType: 'reducing',
+  interestRate: '', minAmount: '', maxAmount: '',
+  minTerm: '', maxTerm: '', repaymentFrequency: 'monthly', gracePeriodDays: '0',
+};
+
 export const LoanProducts: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [products,     setProducts]     = useState<any[]>([]);
+  const [loading,      setLoading]      = useState(true);
+  const [searchTerm,   setSearchTerm]   = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [showAddProduct, setShowAddProduct] = useState(false);
-  const [products, setProducts] = useState<LoanProduct[]>([]);
-  
-  // Load data from localStorage
-  React.useEffect(() => {
-    const data = getStorageData();
-    setProducts(data.products);
+  const [showForm,     setShowForm]     = useState(false);
+  const [editId,       setEditId]       = useState<string | null>(null);
+  const [form,         setForm]         = useState<any>({ ...EMPTY });
+
+  const load = useCallback(() => {
+    setLoading(true);
+    setProducts(getStorageData().products ?? []);
+    setLoading(false);
   }, []);
 
-  const [newProduct, setNewProduct] = useState({
-    code: '',
-    name: '',
-    description: '',
-    interestType: 'reducing' as 'flat' | 'reducing' | 'declining_balance',
-    interestRate: 0,
-    minAmount: 0,
-    maxAmount: 0,
-    minTerm: 0,
-    maxTerm: 0,
-    repaymentFrequency: 'monthly' as 'monthly' | 'weekly' | 'daily',
-    gracePeriodDays: 0
+  useEffect(() => { load(); }, [load]);
+
+  const filtered = products.filter(p => {
+    const q = searchTerm.toLowerCase();
+    const matchSearch = !q ||
+      p.name.toLowerCase().includes(q) ||
+      p.code.toLowerCase().includes(q) ||
+      (p.description ?? '').toLowerCase().includes(q);
+    return matchSearch && (statusFilter === 'all' || p.status === statusFilter);
   });
 
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = 
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase());
+  const openAdd = () => { setEditId(null); setForm({ ...EMPTY }); setShowForm(true); };
+  const openEdit = (p: any) => {
+    setEditId(p.id);
+    setForm({ ...p, interestRate: String(p.interestRate), minAmount: String(p.minAmount), maxAmount: String(p.maxAmount), minTerm: String(p.minTerm), maxTerm: String(p.maxTerm), gracePeriodDays: String(p.gracePeriodDays ?? 0) });
+    setShowForm(true);
+  };
 
-    const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
-
-    return matchesSearch && matchesStatus;
-  });
-
-  const handleAddProduct = () => {
-    if (!newProduct.code || !newProduct.name || !newProduct.description) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-
-    if (newProduct.minAmount >= newProduct.maxAmount) {
-      toast.error('Maximum amount must be greater than minimum amount');
-      return;
-    }
-
-    if (newProduct.minTerm >= newProduct.maxTerm) {
-      toast.error('Maximum term must be greater than minimum term');
-      return;
-    }
-
-    const product = {
-      ...newProduct,
-      status: 'active',
-      createdBy: 'admin'
+  const handleSave = () => {
+    if (!form.code || !form.name || !form.description) { toast.error('Code, name and description are required'); return; }
+    if (Number(form.minAmount) >= Number(form.maxAmount)) { toast.error('Max amount must exceed min amount'); return; }
+    if (Number(form.minTerm) >= Number(form.maxTerm)) { toast.error('Max term must exceed min term'); return; }
+    const payload = {
+      ...form,
+      interestRate: parseFloat(form.interestRate) || 0,
+      minAmount: parseInt(form.minAmount) || 0,
+      maxAmount: parseInt(form.maxAmount) || 0,
+      minTerm: parseInt(form.minTerm) || 0,
+      maxTerm: parseInt(form.maxTerm) || 0,
+      gracePeriodDays: parseInt(form.gracePeriodDays) || 0,
+      status: form.status ?? 'active',
+      createdBy: 'admin',
     };
-
-    addProduct(product);
-    const data = getStorageData();
-    setProducts(data.products);
-    
-    setNewProduct({
-      code: '',
-      name: '',
-      description: '',
-      interestType: 'reducing',
-      interestRate: 0,
-      minAmount: 0,
-      maxAmount: 0,
-      minTerm: 0,
-      maxTerm: 0,
-      repaymentFrequency: 'monthly',
-      gracePeriodDays: 0
-    });
-    setShowAddProduct(false);
-    toast.success('Loan product created successfully');
+    if (editId) { updateProduct(editId, payload); toast.success('Product updated!'); }
+    else { addProduct(payload); toast.success('Product created!'); }
+    load(); setShowForm(false);
   };
 
-  const handleDeleteProduct = (productId: string) => {
-    if (window.confirm('Are you sure you want to delete this loan product? This action cannot be undone.')) {
-      deleteProduct(productId);
-      const data = getStorageData();
-      setProducts(data.products);
-      toast.success('Loan product deleted successfully');
+  const handleDelete = (id: string, name: string) => {
+    if (window.confirm(`Delete "${name}"? This cannot be undone.`)) {
+      deleteProduct(id); load(); toast.success('Product deleted');
     }
   };
 
-  const handleStatusChange = (productId: string, newStatus: 'active' | 'inactive') => {
-    updateProduct(productId, { status: newStatus });
-    const data = getStorageData();
-    setProducts(data.products);
-    toast.success(`Product status updated to ${newStatus}`);
+  const handleStatusToggle = (id: string, current: string) => {
+    const next = current === 'active' ? 'inactive' : 'active';
+    updateProduct(id, { status: next }); load();
+    toast.success(`Product ${next}`);
   };
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-KE', {
-      style: 'currency',
-      currency: 'KSH'
-    }).format(amount);
-  };
+  const f = (k: string) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
+    setForm((p: any) => ({ ...p, [k]: e.target.value }));
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Loan Products</h2>
-          <p className="text-gray-600">Manage loan products and configurations - {filteredProducts.length} products found</p>
+      {/* Form Modal */}
+      {showForm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <h3 className="font-bold text-gray-900 flex items-center gap-2">
+                <DollarSign size={18} className="text-blue-600" />
+                {editId ? 'Edit Loan Product' : 'New Loan Product'}
+              </h3>
+              <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>
+            </div>
+            <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {[
+                ['Product Code *', 'code', 'text', 'e.g. M-LOAN'],
+                ['Product Name *', 'name', 'text', 'e.g. Monthly Loan'],
+                ['Interest Rate (%) *', 'interestRate', 'number', '12.5'],
+                ['Grace Period (days)', 'gracePeriodDays', 'number', '5'],
+                ['Min Amount (Ksh) *', 'minAmount', 'number', '5000'],
+                ['Max Amount (Ksh) *', 'maxAmount', 'number', '100000'],
+                ['Min Term (months) *', 'minTerm', 'number', '3'],
+                ['Max Term (months) *', 'maxTerm', 'number', '12'],
+              ].map(([label, key, type, placeholder]) => (
+                <div key={key}>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">{label}</label>
+                  <input type={type} value={form[key] ?? ''} onChange={f(key)} placeholder={placeholder}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                </div>
+              ))}
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Interest Type *</label>
+                <select value={form.interestType} onChange={f('interestType')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="flat">Flat Rate</option>
+                  <option value="reducing">Reducing Balance</option>
+                  <option value="declining_balance">Declining Balance</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Repayment Frequency *</label>
+                <select value={form.repaymentFrequency} onChange={f('repaymentFrequency')}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <option value="daily">Daily</option>
+                  <option value="weekly">Weekly</option>
+                  <option value="monthly">Monthly</option>
+                </select>
+              </div>
+              <div className="col-span-full">
+                <label className="block text-xs font-medium text-gray-700 mb-1">Description *</label>
+                <textarea value={form.description} onChange={f('description')} rows={3}
+                  placeholder="Describe this loan product…"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
+              </div>
+            </div>
+            <div className="p-6 border-t flex justify-end gap-3">
+              <Button variant="ghost" onClick={() => setShowForm(false)}>Cancel</Button>
+              <Button onClick={handleSave}>{editId ? 'Save Changes' : 'Create Product'}</Button>
+            </div>
+          </div>
         </div>
-        <Button 
-          onClick={() => setShowAddProduct(true)}
-          className="flex items-center gap-2"
-        >
-          <Plus size={16} />
-          Add Product
-        </Button>
-      </div>
-
-      {/* Add Product Form */}
-      {showAddProduct && (
-        <Card>
-          <div className="flex items-center gap-2 mb-4">
-            <DollarSign className="w-5 h-5 text-blue-600" />
-            <h3 className="text-lg font-semibold text-gray-900">Add New Loan Product</h3>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Product Code *
-              </label>
-              <input
-                type="text"
-                value={newProduct.code}
-                onChange={(e) => setNewProduct(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., M-LOAN"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Product Name *
-              </label>
-              <input
-                type="text"
-                value={newProduct.name}
-                onChange={(e) => setNewProduct(prev => ({ ...prev, name: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., Monthly Loan"
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description *
-              </label>
-              <textarea
-                value={newProduct.description}
-                onChange={(e) => setNewProduct(prev => ({ ...prev, description: e.target.value }))}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Describe the loan product..."
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Interest Type *
-              </label>
-              <select
-                value={newProduct.interestType}
-                onChange={(e) => setNewProduct(prev => ({ ...prev, interestType: e.target.value as any }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="flat">Flat Rate</option>
-                <option value="reducing">Reducing Balance</option>
-                <option value="declining_balance">Declining Balance</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Interest Rate (%) *
-              </label>
-              <input
-                type="number"
-                step="0.1"
-                value={newProduct.interestRate}
-                onChange={(e) => setNewProduct(prev => ({ ...prev, interestRate: parseFloat(e.target.value) || 0 }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., 12.5"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Minimum Amount *
-              </label>
-              <input
-                type="number"
-                value={newProduct.minAmount}
-                onChange={(e) => setNewProduct(prev => ({ ...prev, minAmount: parseInt(e.target.value) || 0 }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., 5000"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Maximum Amount *
-              </label>
-              <input
-                type="number"
-                value={newProduct.maxAmount}
-                onChange={(e) => setNewProduct(prev => ({ ...prev, maxAmount: parseInt(e.target.value) || 0 }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., 100000"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Minimum Term (months) *
-              </label>
-              <input
-                type="number"
-                value={newProduct.minTerm}
-                onChange={(e) => setNewProduct(prev => ({ ...prev, minTerm: parseInt(e.target.value) || 0 }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., 3"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Maximum Term (months) *
-              </label>
-              <input
-                type="number"
-                value={newProduct.maxTerm}
-                onChange={(e) => setNewProduct(prev => ({ ...prev, maxTerm: parseInt(e.target.value) || 0 }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., 12"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Repayment Frequency *
-              </label>
-              <select
-                value={newProduct.repaymentFrequency}
-                onChange={(e) => setNewProduct(prev => ({ ...prev, repaymentFrequency: e.target.value as any }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="daily">Daily</option>
-                <option value="weekly">Weekly</option>
-                <option value="monthly">Monthly</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Grace Period (days) *
-              </label>
-              <input
-                type="number"
-                value={newProduct.gracePeriodDays}
-                onChange={(e) => setNewProduct(prev => ({ ...prev, gracePeriodDays: parseInt(e.target.value) || 0 }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="e.g., 5"
-              />
-            </div>
-          </div>
-          
-          <div className="flex justify-end gap-4 mt-6">
-            <Button variant="ghost" onClick={() => setShowAddProduct(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleAddProduct}>
-              Create Product
-            </Button>
-          </div>
-        </Card>
       )}
+
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <DollarSign size={24} className="text-blue-600" /> Loan Products
+          </h2>
+          <p className="text-gray-500 text-sm mt-1">{filtered.length} product{filtered.length !== 1 ? 's' : ''}</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="ghost" size="sm" onClick={load} className="flex items-center gap-1"><RefreshCw size={14} /></Button>
+          <Button onClick={openAdd} className="flex items-center gap-2"><Plus size={16} /> Add Product</Button>
+        </div>
+      </div>
 
       {/* Filters */}
       <Card>
         <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              />
-            </div>
+          <div className="flex-1 relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+            <input type="text" placeholder="Search products…" value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
           </div>
           <div className="flex items-center gap-2">
             <Filter size={16} className="text-gray-400" />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value="all">All Status</option>
+            <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="all">All</option>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
@@ -789,91 +181,69 @@ export const LoanProducts: React.FC = () => {
         </div>
       </Card>
 
-      {/* Products Table */}
+      {/* Table */}
       <Card padding="sm">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Product</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Interest</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Amount Range</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Term Range</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Status</th>
-                <th className="text-left py-3 px-4 font-medium text-gray-700">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProducts.map((product) => (
-                <tr key={product.id} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-3 px-4">
-                    <div>
-                      <p className="font-medium text-gray-900">{product.name}</p>
-                      <p className="text-sm text-gray-600">{product.code}</p>
-                      <p className="text-xs text-gray-500 mt-1">{product.description}</p>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div>
-                      <p className="font-medium text-gray-900">{product.interestRate}%</p>
-                      <p className="text-sm text-gray-600 capitalize">{product.interestType.replace('_', ' ')}</p>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div>
-                      <p className="text-sm text-gray-900">
-                        {formatCurrency(product.minAmount)} - {formatCurrency(product.maxAmount)}
-                      </p>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div>
-                      <p className="text-sm text-gray-900">
-                        {product.minTerm} - {product.maxTerm} months
-                      </p>
-                      <p className="text-xs text-gray-600 capitalize">{product.repaymentFrequency} payments</p>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <select
-                      value={product.status}
-                      onChange={(e) => handleStatusChange(product.id, e.target.value as 'active' | 'inactive')}
-                      className="text-xs px-2 py-1 rounded border border-gray-300 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                    >
-                      <option value="active">Active</option>
-                      <option value="inactive">Inactive</option>
-                    </select>
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                        <Eye size={14} />
-                        View
-                      </Button>
-                      <Button variant="ghost" size="sm" className="flex items-center gap-1 text-blue-600 hover:text-blue-700">
-                        <Edit size={14} />
-                        Edit
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="flex items-center gap-1 text-red-600 hover:text-red-700"
-                        onClick={() => handleDeleteProduct(product.id)}
-                      >
-                        <Trash2 size={14} />
-                        Delete
-                      </Button>
-                    </div>
-                  </td>
+        {loading ? (
+          <div className="flex justify-center py-16"><LoadingSpinner size="lg" /></div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-16 text-gray-400">
+            <DollarSign size={40} className="mx-auto mb-3 text-gray-300" />
+            <p className="font-medium">No loan products yet</p>
+            <button onClick={openAdd} className="mt-2 text-blue-600 text-sm hover:underline">Create your first product</button>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200">
+                  {['Product', 'Interest', 'Amount Range', 'Term Range', 'Frequency', 'Status', ''].map(h => (
+                    <th key={h} className="text-left py-3 px-4 text-sm font-medium text-gray-700">{h}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {filteredProducts.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-gray-500">No loan products found matching your criteria.</p>
+              </thead>
+              <tbody>
+                {filtered.map((p, i) => (
+                  <tr key={p.id ?? i} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-3 px-4">
+                      <p className="font-semibold text-gray-900 text-sm">{p.name}</p>
+                      <p className="text-xs text-gray-500 font-mono">{p.code}</p>
+                      <p className="text-xs text-gray-400 mt-0.5 max-w-40 truncate">{p.description}</p>
+                    </td>
+                    <td className="py-3 px-4">
+                      <p className="text-sm font-semibold text-gray-900">{p.interestRate}%</p>
+                      <p className="text-xs text-gray-500 capitalize">{(p.interestType ?? '').replace('_', ' ')}</p>
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-700">
+                      {fmt(p.minAmount)} – {fmt(p.maxAmount)}
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-700">
+                      {p.minTerm} – {p.maxTerm} months
+                    </td>
+                    <td className="py-3 px-4 text-sm text-gray-700 capitalize">{p.repaymentFrequency}</td>
+                    <td className="py-3 px-4">
+                      <button onClick={() => handleStatusToggle(p.id, p.status)}
+                        className={`text-xs px-2 py-1 rounded-full font-semibold transition ${
+                          p.status === 'active'
+                            ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}>
+                        {p.status}
+                      </button>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-1">
+                        <button onClick={() => openEdit(p)} className="p-1.5 rounded hover:bg-blue-50 text-blue-600" title="Edit">
+                          <Edit2 size={13} />
+                        </button>
+                        <button onClick={() => handleDelete(p.id, p.name)} className="p-1.5 rounded hover:bg-red-50 text-red-500" title="Delete">
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
       </Card>

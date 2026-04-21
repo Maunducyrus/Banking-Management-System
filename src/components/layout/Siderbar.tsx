@@ -9,7 +9,7 @@ import {
   Settings, 
   LogOut,
   Home,
-  // DollarSign,
+  DollarSign,
   Shield,
   ChevronDown,
   ChevronRight
@@ -52,6 +52,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       ] : undefined
     },
     // { id: 'products', label: 'Loan Products', icon: DollarSign, adminOnly: true },
+    { id: 'contributions', label: 'Contributions', icon: DollarSign, adminOnly: false },
+    { id: 'kin-beneficiaries', label: 'Kin & Beneficiaries', icon: UserPlus, adminOnly: false },
     { id: 'users', label: 'User Management', icon: UserPlus, adminOnly: true },
     { id: 'reports', label: 'Reports', icon: BarChart3, adminOnly: true },
     { id: 'audit', label: 'Audit Logs', icon: Shield, adminOnly: true },

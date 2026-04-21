@@ -1,208 +1,230 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '../ui/Card';
-import { Button } from '../ui/Button';
-import { 
-  BarChart3, 
-  Download, 
-  TrendingUp, 
-  Users, 
-  CreditCard, 
-  DollarSign 
-} from 'lucide-react';
+import { BarChart3, Users, DollarSign, RefreshCw, AlertCircle } from 'lucide-react';
+import { membersApi, contributionsApi } from '../../services/api';
+import { LoadingSpinner } from '../ui/LoadingSpinner';
+
+function fmt(n: number) {
+  return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', maximumFractionDigits: 0 }).format(n);
+}
 
 export const ReportsSection: React.FC = () => {
-  const reports = [
-    {
-      title: 'Member Reports',
-      description: 'Total members, new registrations, KYC status',
-      icon: Users,
-      color: 'blue',
-      stats: [
-        { label: 'Total Members', value: '2,547' },
-        { label: 'New This Month', value: '234' },
-        { label: 'KYC Verified', value: '2,103' }
-      ]
-    },
-    {
-      title: 'Loan Performance',
-      description: 'Active loans, disbursements, collection rates',
-      icon: CreditCard,
-      color: 'green',
-      stats: [
-        { label: 'Active Loans', value: '1,234' },
-        { label: 'Total Portfolio', value: 'KSH 12.4M' },
-        { label: 'Collection Rate', value: '94.2%' }
-      ]
-    },
-    {
-      title: 'Disbursement Reports',
-      description: 'Loan disbursements by product and period',
-      icon: DollarSign,
-      color: 'amber',
-      stats: [
-        { label: 'This Month', value: 'KSH 2.4M' },
-        { label: 'Last Month', value: 'KSH 2.1M' },
-        { label: 'Growth', value: '+14.3%' }
-      ]
-    },
-    {
-      title: 'Financial Overview',
-      description: 'Revenue, interest earned, operational metrics',
-      icon: TrendingUp,
-      color: 'teal',
-      stats: [
-        { label: 'Revenue MTD', value: 'KSH 456K' },
-        { label: 'Interest Earned', value: 'KSH 324K' },
-        { label: 'Operating Margin', value: '23.4%' }
-      ]
-    }
-  ];
+  const [loading,  setLoading]  = useState(true);
+  const [error,    setError]    = useState('');
+  const [members,  setMembers]  = useState<any[]>([]);
+  const [contribs, setContribs] = useState<any[]>([]);
 
-  const getColorClasses = (color: string) => {
-    const colorMap = {
-      blue: 'bg-blue-100 text-blue-600',
-      green: 'bg-green-100 text-green-600',
-      amber: 'bg-amber-100 text-amber-600',
-      teal: 'bg-teal-100 text-teal-600'
-    };
-    return colorMap[color as keyof typeof colorMap] || 'bg-gray-100 text-gray-600';
+  const load = async () => {
+    setLoading(true); setError('');
+    try {
+      const [mRes, cRes] = await Promise.allSettled([
+        membersApi.getAllMembers(),
+        contributionsApi.listContributions(),
+      ]);
+      // if (mRes.status === 'fulfilled') {
+      //   const r = mRes.value as any;
+      //   setMembers(Array.isArray(r) ? r : r?.content ?? r?.data ?? []);
+      // }
+      // if (cRes.status === 'fulfilled') {
+      //   const r = cRes.value as any;
+      //   setContribs(Array.isArray(r) ? r : r?.content ?? r?.data ?? []);
+      // }
+
+      if (mRes.status === 'fulfilled') {
+        const r = mRes.value as any;
+
+        let membersList: any[] = [];
+
+        if (Array.isArray(r)) {
+          membersList = r;
+        } else if (Array.isArray(r?.content)) {
+          membersList = r.content;
+        } else if (Array.isArray(r?.data)) {
+          membersList = r.data;
+        } else {
+          membersList = [];
+        }
+
+        setMembers(membersList);
+      }
+
+      if (cRes.status === 'fulfilled') {
+        const r = cRes.value as any;
+
+        let contribList: any[] = [];
+
+        if (Array.isArray(r)) {
+          contribList = r;
+        } else if (Array.isArray(r?.content)) {
+          contribList = r.content;
+        } else if (Array.isArray(r?.data)) {
+          contribList = r.data;
+        } else {
+          contribList = [];
+        }
+
+        setContribs(contribList);
+      }
+
+    } catch (e: any) { setError(e.message ?? 'Failed to load reports'); }
+    finally { setLoading(false); }
   };
+
+  useEffect(() => { load(); }, []);
+
+  // Derived stats
+  const totalContributed = contribs.reduce((s, c) => s + (c.contributedAmount ?? c.amount ?? 0), 0);
+
+  // Group members by department
+  const byDept = members.reduce((acc: Record<string, number>, m) => {
+    const d = m.department ?? 'Other';
+    acc[d] = (acc[d] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  // Group contributions by member
+  const byMember = contribs.reduce((acc: Record<string, number>, c) => {
+    const mn = c.memberNumber ?? c.memberId ?? 'Unknown';
+    acc[mn] = (acc[mn] ?? 0) + (c.contributedAmount ?? c.amount ?? 0);
+    return acc;
+  }, {});
+  const topContributors = Object.entries(byMember)
+    .sort(([, a], [, b]) => (b as number) - (a as number))
+    .slice(0, 5);
+
+  // Members by type
+  const byType = members.reduce((acc: Record<string, number>, m) => {
+    const t = m.memberType ?? 'MEMBER';
+    acc[t] = (acc[t] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  if (loading) return <div className="flex justify-center py-24"><LoadingSpinner size="lg" /></div>;
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Reports & Analytics</h2>
-          <p className="text-gray-600">View detailed reports and performance metrics</p>
+          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <BarChart3 size={24} className="text-blue-600" /> Reports
+          </h2>
+          <p className="text-gray-500 text-sm mt-1">Live data from the API</p>
         </div>
-        <Button className="flex items-center gap-2">
-          <Download size={16} />
-          Export All Reports
-        </Button>
+        <button onClick={load} className="p-2 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition">
+          <RefreshCw size={16} />
+        </button>
       </div>
 
-      {/* Quick Stats Overview */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {reports.map((report, index) => {
-          const Icon = report.icon;
+      {error && (
+        <div className="flex items-center gap-2 text-red-500 bg-red-50 rounded-lg p-4">
+          <AlertCircle size={16} /> <span className="text-sm">{error}</span>
+        </div>
+      )}
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'Total Members',       value: String(members.length),  icon: Users,      color: 'blue'  },
+          { label: 'Total Contributions',  value: String(contribs.length), icon: BarChart3,  color: 'green' },
+          { label: 'Total Contributed',    value: fmt(totalContributed),   icon: DollarSign, color: 'amber' },
+          { label: 'Avg Contribution',     value: contribs.length ? fmt(totalContributed / contribs.length) : '—', icon: DollarSign, color: 'teal' },
+        ].map((s, i) => {
+          const Icon = s.icon;
+          const cm: Record<string, string> = { blue: 'bg-blue-100 text-blue-600', green: 'bg-green-100 text-green-600', amber: 'bg-amber-100 text-amber-600', teal: 'bg-teal-100 text-teal-600' };
           return (
-            <Card key={index} hover className="relative overflow-hidden">
-              <div className="flex items-start justify-between mb-4">
-                <div className={`p-3 rounded-lg ${getColorClasses(report.color)}`}>
-                  <Icon size={24} />
+            <Card key={i} hover>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">{s.label}</p>
+                  <p className="text-xl font-bold text-gray-900 mt-1">{s.value}</p>
                 </div>
-                <Button variant="ghost" size="sm">
-                  <BarChart3 size={16} />
-                </Button>
-              </div>
-              
-              <h3 className="font-semibold text-gray-900 mb-2">{report.title}</h3>
-              <p className="text-sm text-gray-600 mb-4">{report.description}</p>
-              
-              <div className="space-y-2">
-                {report.stats.map((stat, statIndex) => (
-                  <div key={statIndex} className="flex justify-between items-center">
-                    <span className="text-xs text-gray-600">{stat.label}</span>
-                    <span className="text-sm font-medium text-gray-900">{stat.value}</span>
-                  </div>
-                ))}
+                <div className={`p-3 rounded-lg ${cm[s.color]}`}><Icon size={20} /></div>
               </div>
             </Card>
           );
         })}
       </div>
 
-      {/* Detailed Reports */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Loan Portfolio Chart */}
+        {/* Members by Department */}
         <Card>
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Loan Portfolio by Product</h3>
-            <Button variant="ghost" size="sm">
-              <Download size={16} />
-            </Button>
-          </div>
-          
-          <div className="h-64 bg-gray-50 rounded-lg flex items-center justify-center">
-            <div className="text-center">
-              <BarChart3 className="w-12 h-12 text-gray-400 mx-auto mb-2" />
-              <p className="text-gray-600">Chart visualization will be here</p>
-              <p className="text-sm text-gray-500">Integration with charting library needed</p>
-            </div>
-          </div>
-          
-          <div className="mt-4 grid grid-cols-3 gap-4">
-            <div className="text-center">
-              <p className="text-lg font-semibold text-blue-600">45%</p>
-              <p className="text-sm text-gray-600">M-Loan</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-semibold text-green-600">35%</p>
-              <p className="text-sm text-gray-600">Q-Loan</p>
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-semibold text-amber-600">20%</p>
-              <p className="text-sm text-gray-600">Y-Loan</p>
-            </div>
-          </div>
+          <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <Users size={16} className="text-blue-600" /> Members by Department
+          </h3>
+          {Object.keys(byDept).length === 0
+            ? <p className="text-gray-400 text-sm text-center py-6">No department data</p>
+            : <div className="space-y-3">
+                {Object.entries(byDept).sort(([,a],[,b]) => (b as number) - (a as number)).map(([dept, count]) => {
+                  const pct = Math.round(((count as number) / members.length) * 100);
+                  return (
+                    <div key={dept}>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="text-gray-700 font-medium">{dept}</span>
+                        <span className="text-gray-500">{count as number} ({pct}%)</span>
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-2">
+                        <div className="bg-blue-500 h-2 rounded-full transition-all" style={{ width: `${pct}%` }} />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+          }
         </Card>
 
-        {/* Collection Rates */}
+        {/* Top Contributors */}
         <Card>
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="text-lg font-semibold text-gray-900">Collection Rates</h3>
-            <Button variant="ghost" size="sm">
-              <Download size={16} />
-            </Button>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Current Month</span>
-              <span className="text-lg font-semibold text-green-600">94.2%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-green-600 h-2 rounded-full" style={{ width: '94.2%' }}></div>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">Last Month</span>
-              <span className="text-lg font-semibold text-blue-600">92.8%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-blue-600 h-2 rounded-full" style={{ width: '92.8%' }}></div>
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <span className="text-sm text-gray-600">3 Months Ago</span>
-              <span className="text-lg font-semibold text-amber-600">89.5%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div className="bg-amber-600 h-2 rounded-full" style={{ width: '89.5%' }}></div>
-            </div>
-          </div>
+          <h3 className="font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <DollarSign size={16} className="text-green-600" /> Top Contributors
+          </h3>
+          {topContributors.length === 0
+            ? <p className="text-gray-400 text-sm text-center py-6">No contribution data</p>
+            : <div className="space-y-3">
+                {topContributors.map(([mn, amount], i) => (
+                  <div key={mn} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                    <div className="flex items-center gap-3">
+                      <span className="w-6 h-6 rounded-full bg-green-100 text-green-700 text-xs font-bold flex items-center justify-center">{i + 1}</span>
+                      <span className="text-sm font-mono text-gray-700">{mn}</span>
+                    </div>
+                    <span className="text-sm font-semibold text-green-700">{fmt(amount as number)}</span>
+                  </div>
+                ))}
+              </div>
+          }
+        </Card>
+
+        {/* Member Types */}
+        <Card>
+          <h3 className="font-semibold text-gray-800 mb-4">Members by Type</h3>
+          {Object.keys(byType).length === 0
+            ? <p className="text-gray-400 text-sm text-center py-6">No data</p>
+            : <div className="space-y-3">
+                {Object.entries(byType).map(([type, count]) => (
+                  <div key={type} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                    <span className="text-sm font-medium text-gray-700">{type}</span>
+                    <span className="text-xs px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-semibold">{count as number} member{(count as number) !== 1 ? 's' : ''}</span>
+                  </div>
+                ))}
+              </div>
+          }
+        </Card>
+
+        {/* Recent Contributions table */}
+        <Card>
+          <h3 className="font-semibold text-gray-800 mb-4">Recent Contributions</h3>
+          {contribs.length === 0
+            ? <p className="text-gray-400 text-sm text-center py-6">No contributions yet</p>
+            : <div className="space-y-2">
+                {contribs.slice(0, 6).map((c, i) => (
+                  <div key={c.id ?? i} className="flex items-center justify-between text-sm py-1.5 border-b border-gray-100 last:border-0">
+                    <span className="font-mono text-gray-600">{c.memberNumber ?? c.memberId ?? '—'}</span>
+                    <span className="font-semibold text-green-700">{fmt(c.contributedAmount ?? c.amount ?? 0)}</span>
+                  </div>
+                ))}
+              </div>
+          }
         </Card>
       </div>
-
-      {/* Export Options */}
-      <Card>
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Export Options</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Button variant="ghost" className="flex items-center gap-2 justify-center py-3">
-            <Download size={16} />
-            Export to PDF
-          </Button>
-          <Button variant="ghost" className="flex items-center gap-2 justify-center py-3">
-            <Download size={16} />
-            Export to Excel
-          </Button>
-          <Button variant="ghost" className="flex items-center gap-2 justify-center py-3">
-            <Download size={16} />
-            Export to CSV
-          </Button>
-        </div>
-      </Card>
     </div>
   );
 };

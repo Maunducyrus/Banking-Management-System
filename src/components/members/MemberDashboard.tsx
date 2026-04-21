@@ -1,419 +1,191 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
-import { StatusBadge } from '../ui/StatusBadge';
-import { 
-  User, 
-  CreditCard, 
-  FileText, 
-  DollarSign, 
-  // Calendar,
-  TrendingUp,
-  AlertCircle,
-  CheckCircle,
-  Clock,
-  Plus
-} from 'lucide-react';
-// import { useAuth } from '../../contexts/AuthContext';
-import type { Member, Loan, Transaction, KYCDocument } from '../../types';
+import { LoadingSpinner } from '../ui/LoadingSpinner';
+import { User, CreditCard, FileText, DollarSign, TrendingUp, Plus, RefreshCw } from 'lucide-react';
+import { useAuth } from '../../contexts/AuthContext';
+import { membersApi, contributionsApi } from '../../services/api';
 
-interface MemberDashboardProps {
-  onNavigate: (view: string) => void;
+interface Props { onNavigate: (view: string) => void; }
+
+function fmt(n: number) {
+  return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', maximumFractionDigits: 0 }).format(n);
 }
 
-export const MemberDashboard: React.FC<MemberDashboardProps> = ({ onNavigate }) => {
-  // const { user } = useAuth();
+export const MemberDashboard: React.FC<Props> = ({ onNavigate }) => {
+  const { user } = useAuth();
+  const [memberData,     setMemberData]     = useState<any>(null);
+  const [contributions,  setContributions]  = useState<any[]>([]);
+  const [loadingMember,  setLoadingMember]  = useState(true);
+  const [loadingContrib, setLoadingContrib] = useState(true);
 
-  // Mock data for the current user
-  const currentMember: Member = {
-    id: '1',
-    firstName: 'John',
-    middleName: 'Michael',
-    lastName: 'Doe',
-    email: 'user@loanmanagement.com',
-    phone: '+1234567890',
-    nationalId: 'ID123456789',
-    dateOfBirth: '1990-01-15',
-    address: {
-      street: '123 Main St',
-      city: 'New York',
-      state: 'NY',
-      zipCode: '10001',
-      country: 'USA'
-    },
-    status: 'active',
-    kycStatus: 'verified',
-    createdAt: '2024-01-01',
-    updatedAt: '2024-01-15',
-    createdBy: 'system'
-  };
+  // Try to find the logged-in user's member record
+  useEffect(() => {
+    const load = async () => {
+      setLoadingMember(true);
+      try {
+        // Search by email first
+        const res = await membersApi.getAllMembers({ search: user?.email }) as any;
+        const list: any[] = Array.isArray(res) ? res : res?.content ?? res?.data ?? [];
+        const match = list.find((m: any) => m.email === user?.email) ?? list[0] ?? null;
+        setMemberData(match);
+      } catch (_) { setMemberData(null); }
+      finally { setLoadingMember(false); }
+    };
+    if (user?.email) load();
+    else setLoadingMember(false);
+  }, [user?.email]);
 
-  const userLoans: Loan[] = [
-    {
-      id: '1',
-      loanNumber: 'LN-2024-001',
-      memberId: '1',
-      productId: '1',
-      principalAmount: 50000,
-      interestRate: 12.5,
-      term: 12,
-      startDate: '2024-01-01',
-      maturityDate: '2024-12-31',
-      status: 'active',
-      balancePrincipal: 35000,
-      balanceInterest: 2500,
-      nextDueDate: '2024-02-01',
-      createdAt: '2024-01-01',
-      disbursedAt: '2024-01-01'
-    },
-    {
-      id: '2',
-      loanNumber: 'LN-2024-002',
-      memberId: '1',
-      productId: '2',
-      principalAmount: 25000,
-      interestRate: 10.0,
-      term: 6,
-      startDate: '2024-02-01',
-      maturityDate: '2024-07-31',
-      status: 'closed',
-      balancePrincipal: 0,
-      balanceInterest: 0,
-      nextDueDate: null,
-      createdAt: '2024-02-01',
-      disbursedAt: '2024-02-01'
-    }
-  ];
+  // Load contributions for this member
+  useEffect(() => {
+    if (!memberData?.memberNumber) { setLoadingContrib(false); return; }
+    contributionsApi.getMemberContributions(memberData.memberNumber)
+      .then((res: any) => {
+        const list = Array.isArray(res) ? res : res?.content ?? res?.data ?? res?.contributions ?? [];
+        setContributions(list);
+      })
+      .catch(() => setContributions([]))
+      .finally(() => setLoadingContrib(false));
+  }, [memberData?.memberNumber]);
 
-  const recentTransactions: Transaction[] = [
-    {
-      id: '1',
-      loanId: '1',
-      memberId: '1',
-      type: 'repayment',
-      amount: 5000,
-      appliedTo: 'principal',
-      paymentMethod: 'bank_transfer',
-      reference: 'TXN-001',
-      createdBy: '1',
-      createdAt: '2024-01-15'
-    },
-    {
-      id: '2',
-      loanId: '1',
-      memberId: '1',
-      type: 'repayment',
-      amount: 1250,
-      appliedTo: 'interest',
-      paymentMethod: 'mobile_money',
-      reference: 'TXN-002',
-      createdBy: '1',
-      createdAt: '2024-01-10'
-    }
-  ];
+  const totalContributed = contributions.reduce((s, c) => s + (c.contributedAmount ?? c.amount ?? 0), 0);
+  const recentContribs   = contributions.slice(0, 3);
 
-  const kycDocuments: KYCDocument[] = [
-    {
-      id: '1',
-      memberId: '1',
-      documentType: 'national_id',
-      fileName: 'national_id.pdf',
-      fileSize: 1024000,
-      fileUrl: '/documents/utility_bill_1.pdf',
-      status: 'approved',
-      uploadedAt: '2024-01-01',
-      reviewedAt: '2024-01-02',
-      reviewedBy: 'admin',
-      comments: 'Document verified successfully'
-    },
-    {
-      id: '2',
-      memberId: '1',
-      documentType: 'utility_bill',
-      fileName: 'utility_bill.pdf',
-      fileSize: 512000,
-      fileUrl: '/documents/utility_bill_1.pdf',
-      status: 'approved',
-      uploadedAt: '2024-01-01',
-      reviewedAt: '2024-01-02',
-      reviewedBy: 'admin',
-      comments: 'Address verification complete'
-    }
-  ];
-
-  const totalBorrowed = userLoans.reduce((sum, loan) => sum + loan.principalAmount, 0);
-  const totalRepaid = totalBorrowed - userLoans.reduce((sum, loan) => sum + loan.balancePrincipal, 0);
-  const activeLoans = userLoans.filter(loan => loan.status === 'active').length;
-  const creditScore = 750; // Mock credit score
-
-  // const getKYCStatusColor = (status: string) => {
-  //   switch (status) {
-  //     case 'verified': return 'success';
-  //     case 'pending': return 'warning';
-  //     case 'rejected': return 'error';
-  //     default: return 'secondary';
-  //   }
-  // };
-
-  const getKYCStatusIcon = (status: string) => {
-    switch (status) {
-      case 'verified': return CheckCircle;
-      case 'pending': return Clock;
-      case 'rejected': return AlertCircle;
-      default: return FileText;
-    }
-  };
+  if (loadingMember) {
+    return <div className="flex justify-center py-24"><LoadingSpinner size="lg" /></div>;
+  }
 
   return (
     <div className="space-y-6">
-      {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-lg">
-        <h1 className="text-2xl font-bold mb-2">
-          Welcome back, {currentMember.firstName}!
+      {/* Welcome Banner */}
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white p-6 rounded-xl">
+        <h1 className="text-2xl font-bold mb-1">
+          Welcome back, {memberData?.firstName ?? user?.firstName ?? user?.email ?? 'Member'}!
         </h1>
-        <p className="text-blue-100">
-          Manage your loans, payments, and profile from your personal dashboard
+        <p className="text-blue-100 text-sm">
+          {memberData
+            ? `Member No: ${memberData.memberNumber ?? '—'} · ${memberData.department ?? memberData.memberType ?? ''}`
+            : 'Your member profile is being set up'}
         </p>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Active Loans</p>
-              <p className="text-2xl font-bold text-gray-900">{activeLoans}</p>
-            </div>
-            <div className="p-3 bg-blue-100 rounded-full">
-              <CreditCard className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Borrowed</p>
-              <p className="text-2xl font-bold text-gray-900">
-                Ksh {totalBorrowed.toLocaleString()}
-              </p>
-            </div>
-            <div className="p-3 bg-green-100 rounded-full">
-              <DollarSign className="w-6 h-6 text-green-600" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Total Repaid</p>
-              <p className="text-2xl font-bold text-gray-900">
-                Ksh {totalRepaid.toLocaleString()}
-              </p>
-            </div>
-            <div className="p-3 bg-teal-100 rounded-full">
-              <TrendingUp className="w-6 h-6 text-teal-600" />
-            </div>
-          </div>
-        </Card>
-
-        <Card className="p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-gray-600">Credit Score</p>
-              <p className="text-2xl font-bold text-gray-900">{creditScore}</p>
-            </div>
-            <div className="p-3 bg-purple-100 rounded-full">
-              <TrendingUp className="w-6 h-6 text-purple-600" />
-            </div>
-          </div>
-        </Card>
+      {/* Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: 'My Contributions',   value: loadingContrib ? '…' : String(contributions.length), icon: TrendingUp, color: 'blue' },
+          { label: 'Total Contributed',  value: loadingContrib ? '…' : fmt(totalContributed),         icon: DollarSign, color: 'green' },
+          { label: 'Active Loans',        value: '—',                                                   icon: CreditCard, color: 'amber' },
+          { label: 'Member Status',       value: memberData?.status ?? '—',                             icon: User,       color: 'teal' },
+        ].map((s, i) => {
+          const Icon = s.icon;
+          const colorMap: Record<string, string> = { blue: 'bg-blue-100 text-blue-600', green: 'bg-green-100 text-green-600', amber: 'bg-amber-100 text-amber-600', teal: 'bg-teal-100 text-teal-600' };
+          return (
+            <Card key={i} hover>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">{s.label}</p>
+                  <p className="text-xl font-bold text-gray-900 mt-1">{s.value}</p>
+                </div>
+                <div className={`p-3 rounded-lg ${colorMap[s.color]}`}><Icon size={20} /></div>
+              </div>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Quick Actions */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Button
-            onClick={() => onNavigate('apply-loan')}
-            className="flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Apply for Loan</span>
-          </Button>
-          
-          <Button
-            onClick={() => onNavigate('payments')}
-            variant="secondary"
-            className="flex items-center justify-center space-x-2"
-          >
-            <DollarSign className="w-4 h-4" />
-            <span>Make Payment</span>
-          </Button>
-          
-          <Button
-            onClick={() => onNavigate('kyc')}
-            variant="secondary"
-            className="flex items-center justify-center space-x-2"
-          >
-            <FileText className="w-4 h-4" />
-            <span>Upload Documents</span>
-          </Button>
-          
-          <Button
-            onClick={() => onNavigate('profile')}
-            variant="secondary"
-            className="flex items-center justify-center space-x-2"
-          >
-            <User className="w-4 h-4" />
-            <span>Update Profile</span>
-          </Button>
+      <Card>
+        <h2 className="text-base font-semibold text-gray-800 mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            ['apply-loan', 'Apply for Loan',    Plus,     'bg-blue-600 hover:bg-blue-700 text-white'],
+            ['payments',   'Make Contribution',  DollarSign, 'bg-green-600 hover:bg-green-700 text-white'],
+            ['kyc',        'Upload Documents',   FileText,  'bg-gray-100 hover:bg-gray-200 text-gray-800'],
+            ['profile',    'My Profile',         User,      'bg-gray-100 hover:bg-gray-200 text-gray-800'],
+          ].map(([view, label, Icon, cls]) => (
+            <button key={view as string}
+              onClick={() => onNavigate(view as string)}
+              className={`flex flex-col items-center gap-2 p-4 rounded-xl text-sm font-medium transition ${cls}`}>
+              {React.createElement(Icon as any, { size: 20 })}
+              {typeof label === "string" ? label : React.createElement(label)}
+              {/* {label} */}
+            </button>
+          ))}
         </div>
       </Card>
 
-      {/* Active Loans */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Your Active Loans</h2>
-          <Button
-            onClick={() => onNavigate('apply-loan')}
-            size="sm"
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Apply for New Loan
-          </Button>
-        </div>
-        
-        {userLoans.filter(loan => loan.status === 'active').length > 0 ? (
-          <div className="space-y-4">
-            {userLoans.filter(loan => loan.status === 'active').map((loan) => (
-              <div key={loan.id} className="border border-gray-200 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="font-medium text-gray-900">{loan.loanNumber}</h3>
-                  <StatusBadge status={loan.status} />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <p className="text-gray-600">Principal Balance</p>
-                    <p className="font-medium">Ksh {loan.balancePrincipal.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Interest Rate</p>
-                    <p className="font-medium">{loan.interestRate}%</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-600">Next Due Date</p>
-                    <p className="font-medium">
-                      {loan.nextDueDate ? new Date(loan.nextDueDate).toLocaleDateString() : 'N/A'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-8">
-            <CreditCard className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-4">You don't have any active loans</p>
-            <Button
-              onClick={() => onNavigate('apply-loan')}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              Apply for Your First Loan
-            </Button>
-          </div>
-        )}
-      </Card>
-
-      {/* Recent Activity */}
+      {/* Member Details + Recent Contributions side by side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Payments */}
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Payments</h2>
-          {recentTransactions.length > 0 ? (
+        {/* Member Info */}
+        <Card>
+          <h2 className="text-base font-semibold text-gray-800 mb-4 flex items-center justify-between">
+            Profile Summary
+            <button onClick={() => onNavigate('profile')} className="text-xs text-blue-600 hover:underline">Edit</button>
+          </h2>
+          {memberData ? (
             <div className="space-y-3">
-              {recentTransactions.slice(0, 3).map((transaction) => (
-                <div key={transaction.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-                  <div className="flex items-center space-x-3">
-                    <div className="p-2 bg-green-100 rounded-full">
-                      <DollarSign className="w-4 h-4 text-green-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        Ksh {transaction.amount.toLocaleString()}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {transaction.paymentMethod.replace('_', ' ')}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm text-gray-600">
-                      {new Date(transaction.createdAt).toLocaleDateString()}
-                    </p>
-                  </div>
+              {[
+                ['Member #',   memberData.memberNumber],
+                ['Name',       `${memberData.firstName ?? ''} ${memberData.lastName ?? ''}`.trim()],
+                ['Email',      memberData.email],
+                ['Phone',      memberData.phone],
+                ['Department', memberData.department],
+                ['Join Date',  memberData.welfareJoinDate ? new Date(memberData.welfareJoinDate).toLocaleDateString() : null],
+              ].filter(([, v]) => v).map(([label, value]) => (
+                <div key={label as string} className="flex items-center gap-3 text-sm">
+                  <span className="text-gray-500 w-24 shrink-0">{label}</span>
+                  <span className="text-gray-900 font-medium">{value}</span>
                 </div>
               ))}
             </div>
           ) : (
-            <p className="text-gray-600 text-center py-4">No recent payments</p>
+            <div className="text-center py-6 text-gray-400">
+              <User size={32} className="mx-auto mb-2 text-gray-300" />
+              <p className="text-sm">No member profile found for your account.</p>
+              <p className="text-xs mt-1">Contact an admin to link your account to a member record.</p>
+            </div>
           )}
-          <div className="mt-4">
-            <Button
-              onClick={() => onNavigate('payments')}
-              variant="secondary"
-              size="sm"
-              className="w-full"
-            >
-              View All Payments
-            </Button>
-          </div>
         </Card>
 
-        {/* KYC Status */}
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">KYC Verification Status</h2>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-3">
-              <div className={`p-2 rounded-full ${
-                currentMember.kycStatus === 'verified' ? 'bg-green-100' : 
-                currentMember.kycStatus === 'pending' ? 'bg-yellow-100' : 'bg-red-100'
-              }`}>
-                {React.createElement(getKYCStatusIcon(currentMember.kycStatus), {
-                  className: `w-4 h-4 ${
-                    currentMember.kycStatus === 'verified' ? 'text-green-600' : 
-                    currentMember.kycStatus === 'pending' ? 'text-yellow-600' : 'text-red-600'
-                  }`
-                })}
-              </div>
-              <div>
-                <p className="font-medium text-gray-900">Overall Status</p>
-                <StatusBadge status={currentMember.kycStatus} />
-              </div>
+        {/* Recent Contributions */}
+        <Card>
+          <h2 className="text-base font-semibold text-gray-800 mb-4 flex items-center justify-between">
+            Recent Contributions
+            <button onClick={() => onNavigate('payments')} className="text-xs text-blue-600 hover:underline">View all</button>
+          </h2>
+          {loadingContrib ? (
+            <div className="flex justify-center py-6"><LoadingSpinner /></div>
+          ) : recentContribs.length > 0 ? (
+            <div className="space-y-3">
+              {recentContribs.map((c, i) => (
+                <div key={c.id ?? i} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                      <DollarSign size={14} className="text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{fmt(c.contributedAmount ?? c.amount ?? 0)}</p>
+                      <p className="text-xs text-gray-500">
+                        {c.contributionDate ?? c.createdAt
+                          ? new Date(c.contributionDate ?? c.createdAt).toLocaleDateString()
+                          : 'Date unknown'}
+                      </p>
+                    </div>
+                  </div>
+                  <span className="text-xs px-2 py-0.5 rounded-full bg-green-50 text-green-700 font-medium">
+                    {c.status ?? 'Recorded'}
+                  </span>
+                </div>
+              ))}
             </div>
-          </div>
-          
-          <div className="space-y-2 mb-4">
-            {kycDocuments.map((doc) => (
-              <div key={doc.id} className="flex items-center justify-between text-sm">
-                <span className="text-gray-600">
-                  {doc.documentType.replace('_', ' ').toUpperCase()}
-                </span>
-                <StatusBadge status={doc.status} />
-              </div>
-            ))}
-          </div>
-          
-          <Button
-            onClick={() => onNavigate('kyc')}
-            variant="secondary"
-            size="sm"
-            className="w-full"
-          >
-            Manage Documents
-          </Button>
+          ) : (
+            <div className="text-center py-6 text-gray-400">
+              <DollarSign size={32} className="mx-auto mb-2 text-gray-300" />
+              <p className="text-sm">No contributions yet.</p>
+              <button onClick={() => onNavigate('payments')}
+                className="mt-2 text-blue-600 text-xs hover:underline">Make your first contribution</button>
+            </div>
+          )}
         </Card>
       </div>
     </div>

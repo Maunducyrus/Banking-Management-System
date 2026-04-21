@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { StatusBadge } from '../ui/StatusBadge';
@@ -6,6 +6,7 @@ import { Search, Filter, Eye, CheckCircle, XCircle, Plus } from 'lucide-react';
 import type { LoanApplication } from '../../types';
 import { getStorageData, updateApplication } from '../../utils/LocalStorage';
 import toast from 'react-hot-toast';
+import { membersApi } from '../../services/api';
 
 export const ApplicationsList: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -26,7 +27,32 @@ export const ApplicationsList: React.FC = () => {
     setApplications(data.applications);
   }, []);
 
-  const members = getStorageData().members;
+  // const members = getStorageData().users;
+
+  //getting member from backend
+  const [members, setMembers] = useState<any[]>([]);
+
+useEffect(() => {
+  const fetchMembers = async () => {
+    try {
+      const res = await membersApi.getAllMembers();
+
+      console.log("MEMBERS:", res.data);
+
+      const membersData =
+        res?.data?.content ??
+        res?.data?.data?.content ??
+        [];
+
+      setMembers(Array.isArray(membersData) ? membersData : []);
+    } catch (error) {
+      console.error("Failed to fetch members", error);
+      setMembers([]);
+    }
+  };
+
+  fetchMembers();
+}, []);
   const products = getStorageData().products;
 
   const filteredApplications = applications.filter(app => {
@@ -57,12 +83,21 @@ export const ApplicationsList: React.FC = () => {
     };
 
     const data = getStorageData();
-    const updatedApplications = [...data.applications, {
-      ...application,
-      id: Date.now().toString(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    }];
+    const updatedApplications = [
+  ...(data.applications || []),
+  {
+    ...application,
+    id: Date.now().toString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  }
+];
+    // const updatedApplications = [...data.applications, {
+    //   ...application,
+    //   id: Date.now().toString(),
+    //   createdAt: new Date().toISOString(),
+    //   updatedAt: new Date().toISOString()
+    // }];
     
     data.applications = updatedApplications;
     localStorage.setItem('p2p_loan_data', JSON.stringify(data));
@@ -101,6 +136,7 @@ export const ApplicationsList: React.FC = () => {
     return 'text-red-600';
   };
 
+  
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -134,11 +170,23 @@ export const ApplicationsList: React.FC = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Select Member</option>
-                {members.map(member => (
+                {/* {members.map(member => (
                   <option key={member.id} value={member.id}>
                     {member.firstName} {member.lastName} - {member.email}
                   </option>
-                ))}
+                ))} */}
+                {members?.map((member: any) => {
+                  const id = member.memberNumber ?? member.id;
+                  const firstName = member.firstName ?? member.first_name ?? '';
+                  const lastName = member.lastName ?? member.last_name ?? '';
+                  const email = member.email ?? '';
+
+                  return (
+                    <option key={id} value={id}>
+                      {firstName} {lastName} - {email}
+                    </option>
+                  );
+                })}
               </select>
             </div>
             
@@ -269,9 +317,24 @@ export const ApplicationsList: React.FC = () => {
                       <p className="text-sm text-gray-600">{application.term} months</p>
                     </div>
                   </td>
-                  <td className="py-3 px-4">
+                  {/* <td className="py-3 px-4">
                     <p className="text-sm text-gray-900">ID: {application.memberId}</p>
-                  </td>
+                  </td> */}
+                  <td className="py-3 px-4">
+                    <p className="text-sm text-gray-900">
+                      {(() => {
+                        const member = members.find(
+                          m =>
+                            m.id === application.memberId ||
+                            m.memberNumber === application.memberId
+                        );
+
+                        return member
+                          ? `${member.firstName} ${member.lastName} (${member.memberNumber})`
+                          : `ID: ${application.memberId}`;
+                      })()}
+                    </p>
+                  </td>                
                   <td className="py-3 px-4">
                     <p className="font-medium text-gray-900">
                       {formatCurrency(application.amountRequested)}

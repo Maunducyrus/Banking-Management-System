@@ -36,7 +36,7 @@ export const Dashboard: React.FC = () => {
         {/* Quick Actions & Alerts */}
         <div className="space-y-6">
           {/* Alerts */}
-          <Card>
+          {/* <Card>
             <div className="flex items-center gap-2 mb-4">
               <AlertTriangle className="w-5 h-5 text-amber-600" />
               <h3 className="text-lg font-semibold text-gray-900">Alerts</h3>
@@ -58,10 +58,10 @@ export const Dashboard: React.FC = () => {
                 <p className="text-xs text-blue-600 mt-1">Under review</p>
               </div>
             </div>
-          </Card>
+          </Card> */}
 
           {/* Quick Stats */}
-          <Card>
+          {/* <Card>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Stats</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
@@ -81,7 +81,7 @@ export const Dashboard: React.FC = () => {
                 <span className="font-medium text-teal-600">2,547</span>
               </div>
             </div>
-          </Card>
+          </Card> */}
         </div>
       </div>
     </div>
