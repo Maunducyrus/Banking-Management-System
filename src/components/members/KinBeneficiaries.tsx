@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
-import { Users, Heart, Plus, X, CheckCircle, AlertCircle } from 'lucide-react';
+import { Users, Heart, Plus, CheckCircle } from 'lucide-react';
+// import { Users, Heart, Plus, X, CheckCircle, AlertCircle } from 'lucide-react';
+
 import toast from 'react-hot-toast';
 import { membersApi, type NextOfKinPayload, type BeneficiaryPayload } from '../../services/api';
 

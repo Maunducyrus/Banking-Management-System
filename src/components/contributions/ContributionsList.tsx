@@ -58,7 +58,7 @@ export const ContributionsList: React.FC = () => {
   const totalAmount = filtered.reduce((s, c) => s + getAmount(c), 0);
 
   // Stats
-  const uniqueMembers = new Set(filtered.map(c => c.memberNumber ?? c.memberId ?? '')).size;
+  // const uniqueMembers = new Set(filtered.map(c => c.memberNumber ?? c.memberId ?? '')).size;
   const avgAmount     = filtered.length > 0 ? totalAmount / filtered.length : 0;
 
   return (

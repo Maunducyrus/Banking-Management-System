@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Card } from '../ui/Card';
-import { Button } from '../ui/Button';
+// import { Button } from '../ui/Button';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
-import { User, CreditCard, FileText, DollarSign, TrendingUp, Plus, RefreshCw } from 'lucide-react';
+import { User, CreditCard, FileText, DollarSign, TrendingUp, Plus } from 'lucide-react';
+// import { User, CreditCard, FileText, DollarSign, TrendingUp, Plus, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { membersApi, contributionsApi } from '../../services/api';
 

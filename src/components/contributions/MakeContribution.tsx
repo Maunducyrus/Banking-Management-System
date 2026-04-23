@@ -22,11 +22,7 @@ export const MakeContribution: React.FC = () => {
   const [submitting,     setSubmitting]     = useState(false);
   const [lastSuccess,    setLastSuccess]    = useState<any>(null);
   const [fieldError,     setFieldError]     = useState('');
-
-  const [showDebug, setShowDebug] = useState(false);
-
   
-
   // Fetch live members for dropdown
 
   useEffect(() => {

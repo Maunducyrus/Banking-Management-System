@@ -3,9 +3,13 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { StatusBadge } from '../ui/StatusBadge';
 import { LoadingSpinner } from '../ui/LoadingSpinner';
+// import {
+//   Search, Plus, Filter, Eye, UserCheck, UserX, RefreshCw,
+//   Users, ChevronDown, X
+// } from 'lucide-react';
 import {
-  Search, Plus, Filter, Eye, UserCheck, UserX, RefreshCw,
-  Users, ChevronDown, X
+  Search, Plus, Filter, Eye, UserCheck, RefreshCw,
+  Users, X
 } from 'lucide-react';
 import type { Member } from '../../types';
 import toast from 'react-hot-toast';

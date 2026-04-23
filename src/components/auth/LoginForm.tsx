@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Button } from '../ui/Button';
+// import { Button } from '../ui/Button';
 import { Shield, Eye, EyeOff, UserPlus, LogIn, AlertCircle, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { authApi, type RegisterPayload } from '../../services/api';

@@ -1,8 +1,9 @@
 import React from 'react';
 import { DashboardStats } from './DashboardStats';
 import { RecentActivity } from './RecentActivity';
-import { Card } from '../ui/Card';
-import { Bell, Calendar, AlertTriangle } from 'lucide-react';
+// import { Card } from '../ui/Card';
+import { Bell, Calendar } from 'lucide-react';
+// import { Bell, Calendar, AlertTriangle } from 'lucide-react';
 
 export const Dashboard: React.FC = () => {
   return (
