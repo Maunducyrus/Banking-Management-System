@@ -1,0 +1,12 @@
+{
+  "rewrites": [
+    {
+      "source": "/tujipange/:path*",
+      "destination": "https://tujipange-production.up.railway.app/tujipange/:path*"
+    },
+    {
+      "source": "/api/:path*",
+      "destination": "https://tujipange-production.up.railway.app/api/:path*"
+    }
+  ]
+}
