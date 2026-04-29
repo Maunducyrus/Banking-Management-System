@@ -22,6 +22,9 @@ import { LoadingSpinner } from './components/ui/LoadingSpinner';
 import KinBeneficiaries from './components/members/KinBeneficiaries';
 import ContributionsPage from './components/contributions/ContributionsPage';
 
+// import
+import ContributionMetrics from './components/admin/ContributionMetrics';
+
 const AppContent: React.FC = () => {
   const { user, isLoading } = useAuth();
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -81,7 +84,7 @@ const handleNavigation = (view: string) => {
       case 'profile':
         return <ProfileManagement onBack={handleBackToDashboard}/>;
       default:
-        return <MemberDashboard onNavigate={handleNavigation} />;
+        return <MemberDashboard onNavigate={handleNavigation} />; 
     }
   };
 
@@ -111,6 +114,8 @@ const handleNavigation = (view: string) => {
         return <KinBeneficiaries />;
       case 'reports':
         return <ReportsSection />;
+      case 'contribution-metrics':
+        return <ContributionMetrics />;         
       case 'products':
         return (
           <div className="space-y-6">
