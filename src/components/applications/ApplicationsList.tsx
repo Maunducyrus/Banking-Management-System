@@ -1441,6 +1441,7 @@ const ApplyLoanModal: React.FC<ApplyLoanModalProps> = ({ isOpen, members, produc
   const handleMemberChange = (memberNumber: string) => {
     setFormData(prev => ({ ...prev, memberNumber }));
   };
+// Debugging
 
   const handleProductChange = (productCode: string) => {
     const selectedProduct = products.find(p => p.productCode === productCode);

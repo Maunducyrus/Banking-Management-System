@@ -1,642 +1,3 @@
-// import React, { useState, useEffect } from 'react';
-// import { contributionMetricApi } from '../../services/api'; // api service
-// import type { 
-//   AddContributionMetricPayload, 
-//   UpdateContributionMetricPayload 
-// } from '../../services/api'; // api service
-
-// // ── TypeScript Interfaces ──────────────────────────────────────────────────
-// interface ContributionMetric {
-//   id?: number;
-//   periodEnum: 'MONTHLY' | 'WEEKLY' | 'YEARLY';
-//   dueDayOfMonth: number;
-//   contributionAmount: number;
-//   penaltyPercentage: number;
-//   metricStatus?: boolean;
-//   createdAt?: string;
-//   updatedAt?: string;
-// }
-
-// // ── ContributionMetrics Component ──────────────────────────────────────────
-// const ContributionMetrics: React.FC = () => {
-//   // State for metrics list
-//   const [metrics, setMetrics] = useState<ContributionMetric[]>([]);
-//   const [loading, setLoading] = useState<boolean>(false);
-//   const [error, setError] = useState<string | null>(null);
-//   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-//   // State for form modal
-//   const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
-//   const [isEditing, setIsEditing] = useState<boolean>(false);
-//   const [currentMetricId, setCurrentMetricId] = useState<number | null>(null);
-
-//   // Form state
-//   const [formData, setFormData] = useState<AddContributionMetricPayload>({
-//     periodEnum: 'MONTHLY',
-//     dueDayOfMonth: 5,
-//     contributionAmount: 5000.00,
-//     penaltyPercentage: 2,
-//   });
-
-//   // State for delete confirmation
-//   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
-
-//   // ── Fetch Metrics on Component Mount ────────────────────────────────────
-//   useEffect(() => {
-//     fetchMetrics();
-//   }, []);
-
-// //   // ── API Calls ───────────────────────────────────────────────────────────
-// //   const fetchMetrics = async () => {
-// //     setLoading(true);
-// //     setError(null);
-// //     try {
-// //       const data = await contributionMetricApi.listAllMetrics();
-// //         console.log("METRICS FROM API:", data);
-// //       // Handle different response structures
-// //       setMetrics(data?.data || data?.content || data || []);
-// //     } catch (err: any) {
-// //       setError(err.message || 'Failed to fetch contribution metrics');
-// //     } finally {
-// //       setLoading(false);
-// //     }
-// //   };
-
-// const fetchMetrics = async () => {
-//   setLoading(true);
-//   setError(null);
-
-//   try {
-//     const response = await contributionMetricApi.listAllMetrics();
-
-//     console.log("METRICS FROM API:", response);
-
-//     const raw =
-//       response?.data ??
-//       response?.content ??
-//       response;
-
-//     // normalize nested arrays
-//     const normalized = Array.isArray(raw?.[0])
-//       ? raw[0]        
-//       : raw;
-
-//     setMetrics(Array.isArray(normalized) ? normalized : []);
-//   } catch (err: any) {
-//     setError(err.message || 'Failed to fetch contribution metrics');
-//   } finally {
-//     setLoading(false);
-//   }
-// };
-
-//   const handleAddMetric = async () => {
-//     setLoading(true);
-//     setError(null);
-//     try {
-//       await contributionMetricApi.addMetric(formData);
-//       setSuccessMessage('Metric added successfully!');
-//       setIsFormOpen(false);
-//       resetForm();
-//       fetchMetrics(); // Refresh list
-
-//     } catch (err: any) {
-//       setError(err.message || 'Failed to add metric');
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const handleUpdateMetric = async () => {
-//     if (!currentMetricId) return;
-//     setLoading(true);
-//     setError(null);
-//     try {
-//       const updatePayload: UpdateContributionMetricPayload = {
-//         dueDayOfMonth: formData.dueDayOfMonth,
-//         contributionAmount: formData.contributionAmount,
-//         penaltyPercentage: formData.penaltyPercentage,
-//         metricStatus: true, // Default to active when updating
-//       };
-//       await contributionMetricApi.updateMetric(currentMetricId, updatePayload);
-//       setSuccessMessage('Metric updated successfully!');
-//       setIsFormOpen(false);
-//       setIsEditing(false);
-//       resetForm();
-//       fetchMetrics(); // Refresh list
-//     } catch (err: any) {
-//       setError(err.message || 'Failed to update metric');
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const handleDeleteMetric = async (id: number) => {
-//     setLoading(true);
-//     setError(null);
-//     try {
-//       await contributionMetricApi.deleteMetric(id);
-//       setSuccessMessage('Metric deleted successfully!');
-//       setDeleteConfirmId(null);
-//       fetchMetrics(); // Refresh list
-//     } catch (err: any) {
-//       setError(err.message || 'Failed to delete metric');
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   // ── Form Handlers ───────────────────────────────────────────────────────
-//   const resetForm = () => {
-//     setFormData({
-//       periodEnum: 'MONTHLY',
-//       dueDayOfMonth: 5,
-//       contributionAmount: 5000.00,
-//       penaltyPercentage: 2,
-//     });
-//     setCurrentMetricId(null);
-//   };
-
-//   const openAddForm = () => {
-//     resetForm();
-//     setIsEditing(false);
-//     setIsFormOpen(true);
-//   };
-
-//   const openEditForm = (metric: ContributionMetric) => {
-//     setFormData({
-//       periodEnum: metric.periodEnum,
-//       dueDayOfMonth: metric.dueDayOfMonth,
-//       contributionAmount: metric.contributionAmount,
-//       penaltyPercentage: metric.penaltyPercentage,
-//     });
-//     setCurrentMetricId(metric.id || null);
-//     setIsEditing(true);
-//     setIsFormOpen(true);
-//   };
-
-//   const handleInputChange = (
-//     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-//   ) => {
-//     const { name, value, type } = e.target;
-//     setFormData ((prev: any) => ({
-//       ...prev,
-//       [name]: type === 'number' ? parseFloat(value) || 0 : value,
-//     }));
-//   };
-
-//   // ── Clear messages after timeout ────────────────────────────────────────
-//   useEffect(() => {
-//     if (successMessage || error) {
-//       const timer = setTimeout(() => {
-//         setSuccessMessage(null);
-//         setError(null);
-//       }, 5000);
-//       return () => clearTimeout(timer);
-//     }
-//   }, [successMessage, error]);
-
-//   // ── Format currency ────────────────────────────────────────────────────
-//   const formatCurrency = (amount: number) => {
-//     return new Intl.NumberFormat('en-KE', {
-//       style: 'currency',
-//       currency: 'KES',
-//     }).format(amount);
-//   };
-
-//   // ── Render ──────────────────────────────────────────────────────────────
-//   return (
-//     <div className="min-h-screen bg-white">
-//       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-//         {/* Header Section */}
-//         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
-//           <div>
-//             <h1 className="text-3xl font-bold text-black-800">
-//               Contribution Metrics
-//             </h1>
-//             <p className="mt-1 text-sm text-black-600">
-//               Manage contribution periods, amounts, and penalty settings
-//             </p>
-//           </div>
-//           <button
-//             onClick={openAddForm}
-//             className="mt-4 sm:mt-0 inline-flex items-center px-6 py-3 border border-transparent 
-//                      text-sm font-medium rounded-lg shadow-sm text-white bg-green-700 
-//                      hover:bg-green-800 focus:outline-none focus:ring-2 focus:ring-offset-2 
-//                      focus:ring-green-500 transition-colors duration-200"
-//           >
-//             <svg
-//               className="w-5 h-5 mr-2"
-//               fill="none"
-//               stroke="currentColor"
-//               viewBox="0 0 24 24"
-//             >
-//               <path
-//                 strokeLinecap="round"
-//                 strokeLinejoin="round"
-//                 strokeWidth={2}
-//                 d="M12 4v16m8-8H4"
-//               />
-//             </svg>
-//             Add New Metric
-//           </button>
-//         </div>
-
-//         {/* Alert Messages */}
-//         {error && (
-//           <div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-md">
-//             <div className="flex">
-//               <div className="flex-shrink-0">
-//                 <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
-//                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
-//                 </svg>
-//               </div>
-//               <div className="ml-3">
-//                 <p className="text-sm text-red-700">{error}</p>
-//               </div>
-//             </div>
-//           </div>
-//         )}
-
-//         {successMessage && (
-//           <div className="mb-6 p-4 bg-green-50 border-l-4 border-green-500 rounded-md">
-//             <div className="flex">
-//               <div className="flex-shrink-0">
-//                 <svg className="h-5 w-5 text-green-400" viewBox="0 0 20 20" fill="currentColor">
-//                   <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-//                 </svg>
-//               </div>
-//               <div className="ml-3">
-//                 <p className="text-sm text-black-700">{successMessage}</p>
-//               </div>
-//             </div>
-//           </div>
-//         )}
-
-//         {/* Metrics Table */}
-//         <div className="bg-white shadow-md rounded-lg overflow-hidden border border-green-100">
-//           <div className="overflow-x-auto">
-//             <table className="min-w-full divide-y divide-green-200">
-//               <thead className="bg-green-50">
-//                 <tr>
-//                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-black-700 uppercase tracking-wider">
-//                     ID
-//                   </th>
-//                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-black-700 uppercase tracking-wider">
-//                     Period
-//                   </th>
-//                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-black-700 uppercase tracking-wider">
-//                     Due Day
-//                   </th>
-//                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-black-700 uppercase tracking-wider">
-//                     Amount (KES)
-//                   </th>
-//                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-black-700 uppercase tracking-wider">
-//                     Penalty %
-//                   </th>
-//                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-black-700 uppercase tracking-wider">
-//                     Status
-//                   </th>
-//                   <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-black-700 uppercase tracking-wider">
-//                     Actions
-//                   </th>
-//                 </tr>
-//               </thead>
-//               <tbody className="bg-white divide-y divide-green-100">
-//                 {loading && metrics.length === 0 ? (
-//                   <tr>
-//                     <td colSpan={7} className="px-6 py-12 text-center">
-//                       <div className="flex justify-center items-center">
-//                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700"></div>
-//                         <span className="ml-3 text-black-600">Loading metrics...</span>
-//                       </div>
-//                     </td>
-//                   </tr>
-//                 ) : metrics.length === 0 ? (
-//                   <tr>
-//                     <td colSpan={7} className="px-6 py-12 text-center">
-//                       <div className="text-center">
-//                         <svg className="mx-auto h-12 w-12 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-//                         </svg>
-//                         <h3 className="mt-2 text-sm font-medium text-black-800">No metrics found</h3>
-//                         <p className="mt-1 text-sm text-black-600">Get started by adding a new contribution metric.</p>
-//                       </div>
-//                     </td>
-//                   </tr>
-//                 ) : (
-//                   metrics.map((metric) => (
-//                     <tr key={metric.id} className="hover:bg-green-50 transition-colors duration-150">
-//                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-black-800">
-//                         #{metric.id}
-//                       </td>
-//                       <td className="px-6 py-4 whitespace-nowrap">
-//                         <span className="inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium bg-green-100 text-black-800">
-//                           {metric.periodEnum}
-//                         </span>
-//                       </td>
-//                       <td className="px-6 py-4 whitespace-nowrap text-sm text-black-700">
-//                         Day {metric.dueDayOfMonth}
-//                       </td>
-//                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-black-800">
-//                         {formatCurrency(metric.contributionAmount)}
-//                       </td>
-//                       <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-medium">
-//                         {metric.penaltyPercentage}%
-//                       </td>
-//                       <td className="px-6 py-4 whitespace-nowrap">
-//                         <span
-//                           className={`inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium ${
-//                             metric.metricStatus !== false
-//                               ? 'bg-green-100 text-black-800'
-//                               : 'bg-gray-100 text-gray-500'
-//                           }`}
-//                         >
-//                           {metric.metricStatus !== false ? 'Active' : 'Inactive'}
-//                         </span>
-//                       </td>
-//                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-//                         <button
-//                           onClick={() => openEditForm(metric)}
-//                           className="text-black-700 hover:text-green-900 mr-4 transition-colors duration-150"
-//                           title="Edit metric"
-//                         >
-//                           <svg className="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-//                           </svg>
-//                         </button>
-//                         <button
-//                           onClick={() => setDeleteConfirmId(metric.id || null)}
-//                           className="text-red-600 hover:text-red-900 transition-colors duration-150"
-//                           title="Delete metric"
-//                         >
-//                           <svg className="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-//                           </svg>
-//                         </button>
-//                       </td>
-//                     </tr>
-//                   ))
-//                 )}
-//               </tbody>
-//             </table>
-//           </div>
-//         </div>
-//       </div>
-
-//       {/* Add/Edit Form Modal */}
-//       {isFormOpen && (
-//         <div className="fixed inset-0 z-50 overflow-y-auto">
-//           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center">
-//             {/* Overlay */}
-//             <div 
-//               className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-//               onClick={() => {
-//                 setIsFormOpen(false);
-//                 setIsEditing(false);
-//                 resetForm();
-//               }}
-//             ></div>
-
-//             {/* Modal Content */}
-//             <div className="relative inline-block bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full sm:p-6">
-//               <div>
-//                 <div className="flex justify-between items-center mb-6">
-//                   <h3 className="text-2xl font-semibold text-black-800">
-//                     {isEditing ? 'Edit Contribution Metric' : 'Add New Contribution Metric'}
-//                   </h3>
-//                   <button
-//                     onClick={() => {
-//                       setIsFormOpen(false);
-//                       setIsEditing(false);
-//                       resetForm();
-//                     }}
-//                     className="text-green-400 hover:text-black-600 transition-colors duration-150"
-//                   >
-//                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-//                     </svg>
-//                   </button>
-//                 </div>
-
-//                 {/* Form */}
-//                 <form onSubmit={(e) => {
-//                   e.preventDefault();
-//                   isEditing ? handleUpdateMetric() : handleAddMetric();
-//                 }} className="space-y-5">
-//                   {/* Period Enum */}
-//                   <div>
-//                     <label htmlFor="periodEnum" className="block text-sm font-medium text-black-700 mb-2">
-//                       Contribution Period *
-//                     </label>
-//                     <select
-//                       id="periodEnum"
-//                       name="periodEnum"
-//                       value={formData.periodEnum}
-//                       onChange={handleInputChange}
-//                       className="block w-full px-4 py-3 rounded-lg border border-green-300 shadow-sm 
-//                                focus:ring-2 focus:ring-green-500 focus:border-green-500 
-//                                text-gray-700 bg-white transition-colors duration-150"
-//                       required
-//                     >
-//                       <option value="MONTHLY">Monthly</option>
-//                       <option value="WEEKLY">Weekly</option>
-//                       <option value="YEARLY">Yearly</option>
-//                     </select>
-//                     </div>
-
-//                   {/* Due Day of Month */}
-//                   <div>
-//                     <label htmlFor="dueDayOfMonth" className="block text-sm font-medium text-black-700 mb-2">
-//                       Due Day of Month *
-//                     </label>
-//                     <input
-//                       type="number"
-//                       id="dueDayOfMonth"
-//                       name="dueDayOfMonth"
-//                       value={formData.dueDayOfMonth}
-//                       onChange={handleInputChange}
-//                       min="1"
-//                       max="31"
-//                       className="block w-full px-4 py-3 rounded-lg border border-green-300 shadow-sm 
-//                                focus:ring-2 focus:ring-green-500 focus:border-green-500 
-//                                text-gray-700 placeholder-green-400 transition-colors duration-150"
-//                       placeholder="e.g., 5"
-//                       required
-//                     />
-//                     <p className="mt-1 text-xs text-black-600">Day of the month when contributions are due</p>
-//                   </div>
-
-//                   {/* Contribution Amount */}
-//                   <div>
-//                     <label htmlFor="contributionAmount" className="block text-sm font-medium text-black-700 mb-2">
-//                       Contribution Amount (KES) *
-//                     </label>
-//                     <div className="relative rounded-lg shadow-sm">
-//                       <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-//                         <span className="text-green-500 sm:text-sm font-medium">KES</span>
-//                       </div>
-//                       <input
-//                         type="number"
-//                         id="contributionAmount"
-//                         name="contributionAmount"
-//                         value={formData.contributionAmount}
-//                         onChange={handleInputChange}
-//                         min="1"
-//                         step="0.01"
-//                         className="block w-full pl-12 pr-4 py-3 rounded-lg border border-green-300 
-//                                  focus:ring-2 focus:ring-green-500 focus:border-green-500 
-//                                  text-gray-700 placeholder-green-400 transition-colors duration-150"
-//                         placeholder="5000.00"
-//                         required
-//                       />
-//                     </div>
-//                   </div>
-
-//                   {/* Penalty Percentage */}
-//                   <div>
-//                     <label htmlFor="penaltyPercentage" className="block text-sm font-medium text-black-700 mb-2">
-//                       Penalty Percentage (%) *
-//                     </label>
-//                     <div className="relative rounded-lg shadow-sm">
-//                       <input
-//                         type="number"
-//                         id="penaltyPercentage"
-//                         name="penaltyPercentage"
-//                         value={formData.penaltyPercentage}
-//                         onChange={handleInputChange}
-//                         min="0"
-//                         max="100"
-//                         step="0.1"
-//                         className="block w-full pr-12 px-4 py-3 rounded-lg border border-green-300 
-//                                  focus:ring-2 focus:ring-green-500 focus:border-green-500 
-//                                  text-gray-700 placeholder-green-400 transition-colors duration-150"
-//                         placeholder="2"
-//                         required
-//                       />
-//                       <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-//                         <span className="text-green-500 sm:text-sm font-medium">%</span>
-//                       </div>
-//                     </div>
-//                     <p className="mt-1 text-xs text-black-600">Penalty applied for late contributions</p>
-//                   </div>
-
-//                   {/* Form Actions */}
-//                   <div className="flex justify-end space-x-4 pt-4 border-t border-green-100">
-//                     <button
-//                       type="button"
-//                       onClick={() => {
-//                         setIsFormOpen(false);
-//                         setIsEditing(false);
-//                         resetForm();
-//                       }}
-//                       className="inline-flex items-center px-5 py-2.5 border border-green-300 text-sm 
-//                                font-medium rounded-lg text-black-700 bg-white hover:bg-green-50 
-//                                focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 
-//                                transition-colors duration-150"
-//                     >
-//                       Cancel
-//                     </button>
-//                     <button
-//                       type="submit"
-//                       disabled={loading}
-//                       className="inline-flex items-center px-5 py-2.5 border border-transparent 
-//                                text-sm font-medium rounded-lg text-white bg-green-700 
-//                                hover:bg-green-800 focus:outline-none focus:ring-2 
-//                                focus:ring-offset-2 focus:ring-green-500 
-//                                disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
-//                     >
-//                       {loading ? (
-//                         <>
-//                           <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-//                           {isEditing ? 'Updating...' : 'Adding...'}
-//                         </>
-//                       ) : (
-//                         isEditing ? 'Update Metric' : 'Add Metric'
-//                       )}
-//                     </button>
-//                   </div>
-//                 </form>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-
-//       {/* Delete Confirmation Modal */}
-//       {deleteConfirmId && (
-//         <div className="fixed inset-0 z-50 overflow-y-auto">
-//           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center">
-//             {/* Overlay */}
-//             <div 
-//               className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-//               onClick={() => setDeleteConfirmId(null)}
-//             ></div>
-
-//             {/* Modal Content */}
-//             <div className="relative inline-block bg-white rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-md sm:w-full sm:p-6">
-//               <div>
-//                 <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-red-100">
-//                   <svg className="h-8 w-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-//                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-//                   </svg>
-//                 </div>
-//                 <div className="mt-4 text-center sm:mt-5">
-//                   <h3 className="text-lg leading-6 font-medium text-gray-900">
-//                     Delete Contribution Metric
-//                   </h3>
-//                   <div className="mt-2">
-//                     <p className="text-sm text-gray-500">
-//                       Are you sure you want to delete metric #{deleteConfirmId}? 
-//                       This action cannot be undone.
-//                     </p>
-//                   </div>
-//                 </div>
-//                 <div className="mt-6 flex justify-end space-x-4">
-//                   <button
-//                     type="button"
-//                     onClick={() => setDeleteConfirmId(null)}
-//                     className="inline-flex items-center px-5 py-2.5 border border-green-300 text-sm 
-//                              font-medium rounded-lg text-black-700 bg-white hover:bg-green-50 
-//                              focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 
-//                              transition-colors duration-150"
-//                   >
-//                     Cancel
-//                   </button>
-//                   <button
-//                     type="button"
-//                     onClick={() => handleDeleteMetric(deleteConfirmId)}
-//                     disabled={loading}
-//                     className="inline-flex items-center px-5 py-2.5 border border-transparent 
-//                              text-sm font-medium rounded-lg text-white bg-red-600 
-//                              hover:bg-red-700 focus:outline-none focus:ring-2 
-//                              focus:ring-offset-2 focus:ring-red-500 
-//                              disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-150"
-//                   >
-//                     {loading ? (
-//                       <>
-//                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-//                         Deleting...
-//                       </>
-//                     ) : (
-//                       'Delete'
-//                     )}
-//                   </button>
-//                 </div>
-//               </div>
-//             </div>
-//           </div>
-//         </div>
-//       )}
-//     </div>
-//   );
-// };
-
-// export default ContributionMetrics;
-
-
-
-
-
 import React, { useState, useEffect } from 'react';
 import { contributionMetricApi } from '../../services/api';
 import type {
@@ -645,18 +6,17 @@ import type {
 } from '../../services/api';
 
 interface ContributionMetric {
-  id?: number;
+  id?: number | string;
   periodEnum: 'MONTHLY' | 'WEEKLY' | 'YEARLY';
-  dueDayOfMonth: number;
+  dueDayOfMonth: number; // Keep this for the form, calculate from nextDueDate
+  nextDueDate: string;
   contributionAmount: number;
   penaltyPercentage: number;
-  metricStatus?: boolean;
+  metricStatus?: 'ACTIVE' | 'INACTIVE';
   createdAt?: string;
   updatedAt?: string;
 }
 
-// FIX: All numeric fields kept as strings in state to avoid the
-// "HTML inputs always return strings" bug. Parsed to numbers only on submit.
 interface FormState {
   periodEnum: 'MONTHLY' | 'WEEKLY' | 'YEARLY';
   dueDayOfMonth: string;
@@ -671,19 +31,38 @@ const EMPTY_FORM: FormState = {
   penaltyPercentage: '',
 };
 
+// Helper: Extract day of month from date string
+function getDayFromDate(dateString: string): number {
+  if (!dateString) return 0;
+  const date = new Date(dateString);
+  return isNaN(date.getTime()) ? 0 : date.getDate();
+}
+
+// FIXED: Transform backend data to include dueDayOfMonth
 function extractMetrics(res: any): ContributionMetric[] {
   if (!res) return [];
   const raw = res?.data ?? res?.content ?? res;
   const list = Array.isArray(raw?.[0]) ? raw[0] : raw;
-  return Array.isArray(list) ? list : [];
+  
+  if (!Array.isArray(list)) return [];
+  
+  // Map backend response to include dueDayOfMonth
+  return list.map((item: any) => ({
+    ...item,
+    // Calculate dueDayOfMonth from nextDueDate if not provided by backend
+    dueDayOfMonth: item.dueDayOfMonth ?? getDayFromDate(item.nextDueDate),
+    // Ensure numeric fields are numbers
+    contributionAmount: Number(item.contributionAmount),
+    penaltyPercentage: Number(item.penaltyPercentage),
+  }));
 }
 
 function formatCurrency(n: number): string {
   return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(n);
 }
 
-// FIX: Show actual day number with ordinal suffix e.g. "5th of month"
 function ordinal(n: number): string {
+  if (!n || n === 0) return '';
   const s = ['th', 'st', 'nd', 'rd'];
   const v = n % 100;
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
@@ -707,7 +86,9 @@ const ContributionMetrics: React.FC = () => {
     try {
       const response = await contributionMetricApi.listAllMetrics();
       console.log('[ContributionMetrics] raw response:', response);
-      setMetrics(extractMetrics(response));
+      const transformed = extractMetrics(response);
+      console.log('[ContributionMetrics] transformed metrics:', transformed);
+      setMetrics(transformed);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch contribution metrics');
     } finally {
@@ -734,14 +115,13 @@ const ContributionMetrics: React.FC = () => {
       contributionAmount: String(metric.contributionAmount),
       penaltyPercentage: String(metric.penaltyPercentage),
     });
-    setCurrentMetricId(metric.id ?? null);
+    setCurrentMetricId(typeof metric.id === 'string' ? parseInt(metric.id) : (metric.id ?? null));
     setIsEditing(true);
     setIsFormOpen(true);
   };
 
   const closeForm = () => { setIsFormOpen(false); setIsEditing(false); resetForm(); };
 
-  // FIX: store ALL fields as strings; only parse to numbers on submit
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
@@ -782,10 +162,10 @@ const ContributionMetrics: React.FC = () => {
   const handleAddMetric = async () => {
     const payload = buildAddPayload(); if (!payload) return;
     setLoading(true); setError(null);
-    console.log('[ContributionMetrics] Adding metric:', payload);
+    console.log('[ContributionMetrics] Adding metric - payload:', payload);
     try {
       await contributionMetricApi.addMetric(payload);
-      setSuccessMessage(`Metric added — due on the ${ordinal(payload.dueDayOfMonth)} of each ${payload.periodEnum.toLowerCase()}`);
+      setSuccessMessage(`Metric added — due on the ${ordinal(payload.dueDayOfMonth)} of each month`);
       closeForm(); fetchMetrics();
     } catch (err: any) { setError(err.message || 'Failed to add metric'); }
     finally { setLoading(false); }
@@ -795,6 +175,7 @@ const ContributionMetrics: React.FC = () => {
     if (!currentMetricId) return;
     const payload = buildUpdatePayload(); if (!payload) return;
     setLoading(true); setError(null);
+    console.log('[ContributionMetrics] Updating metric:', currentMetricId, payload);
     try {
       await contributionMetricApi.updateMetric(currentMetricId, payload);
       setSuccessMessage('Metric updated successfully!');
@@ -803,10 +184,11 @@ const ContributionMetrics: React.FC = () => {
     finally { setLoading(false); }
   };
 
-  const handleDeleteMetric = async (id: number) => {
+  const handleDeleteMetric = async (id: number | string) => {
+    const numericId = typeof id === 'string' ? parseInt(id) : id;
     setDeleting(true); setError(null);
     try {
-      await contributionMetricApi.deleteMetric(id);
+      await contributionMetricApi.deleteMetric(numericId);
       setSuccessMessage('Metric deleted successfully!');
       setDeleteConfirmId(null); fetchMetrics();
     } catch (err: any) { setError(err.message || 'Failed to delete metric'); }
@@ -845,11 +227,11 @@ const ContributionMetrics: React.FC = () => {
           </button>
         </div>
 
-        {/* No-metric warning — explains the "no metric found" contribution error */}
+        {/* No-metric warning */}
         {!loading && metrics.length === 0 && (
           <div className="mb-6 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-md">
             <p className="text-sm text-amber-800 font-medium">
-              ⚠️ No contribution metrics configured. Members will receive a "no metric found" error when trying to make contributions. Please add a metric first.
+              No contribution metrics configured. Members will receive a "no metric found" error when trying to make contributions. Please add a metric first.
             </p>
           </div>
         )}
@@ -878,7 +260,7 @@ const ContributionMetrics: React.FC = () => {
             <table className="min-w-full divide-y divide-green-200">
               <thead className="bg-green-50">
                 <tr>
-                  {['ID', 'Period', 'Due Day', 'Amount (KES)', 'Penalty %', 'Status', 'Actions'].map(h => (
+                  {['ID', 'Period', 'Due Day', 'Amount (KES)', 'Penalty', 'Status', 'Actions'].map(h => (
                     <th key={h} scope="col"
                       className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                       {h}
@@ -912,9 +294,8 @@ const ContributionMetrics: React.FC = () => {
                           {metric.periodEnum}
                         </span>
                       </td>
-                      {/* FIX: Display actual day number with ordinal suffix */}
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-semibold">
-                        {ordinal(metric.dueDayOfMonth)} of month
+                        {metric.dueDayOfMonth ? `${ordinal(metric.dueDayOfMonth)} of month` : '—'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-800">
                         {formatCurrency(metric.contributionAmount)}
@@ -924,9 +305,11 @@ const ContributionMetrics: React.FC = () => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-3 py-0.5 rounded-full text-sm font-medium ${
-                          metric.metricStatus !== false ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-500'
+                          metric.metricStatus === 'ACTIVE'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-gray-100 text-gray-500'
                         }`}>
-                          {metric.metricStatus !== false ? 'Active' : 'Inactive'}
+                          {metric.metricStatus === 'ACTIVE' ? 'Active' : 'Inactive'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -937,7 +320,7 @@ const ContributionMetrics: React.FC = () => {
                               d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
                         </button>
-                        <button onClick={() => setDeleteConfirmId(metric.id ?? null)}
+                        <button onClick={() => setDeleteConfirmId(typeof metric.id === 'string' ? parseInt(metric.id) : (metric.id ?? null))}
                           className="text-red-600 hover:text-red-900 transition-colors" title="Delete metric">
                           <svg className="w-5 h-5 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -986,7 +369,7 @@ const ContributionMetrics: React.FC = () => {
                   </select>
                 </div>
 
-                {/* Due Day — FIX: string state, parseInt on submit */}
+                {/* Due Day */}
                 <div>
                   <label htmlFor="dueDayOfMonth" className="block text-sm font-medium text-gray-700 mb-2">
                     Due Day of Month * (1–31)
@@ -1003,7 +386,7 @@ const ContributionMetrics: React.FC = () => {
                   )}
                 </div>
 
-                {/* Amount — FIX: string state, parseFloat on submit */}
+                {/* Amount */}
                 <div>
                   <label htmlFor="contributionAmount" className="block text-sm font-medium text-gray-700 mb-2">
                     Contribution Amount (KES) *
@@ -1020,12 +403,12 @@ const ContributionMetrics: React.FC = () => {
                   </div>
                   {formData.contributionAmount && !isNaN(parseFloat(formData.contributionAmount)) && (
                     <p className="mt-1 text-xs text-green-700 font-medium">
-                      {new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES' }).format(parseFloat(formData.contributionAmount))}
+                      {formatCurrency(parseFloat(formData.contributionAmount))}
                     </p>
                   )}
                 </div>
 
-                {/* Penalty — FIX: string state, parseFloat on submit */}
+                {/* Penalty */}
                 <div>
                   <label htmlFor="penaltyPercentage" className="block text-sm font-medium text-gray-700 mb-2">
                     Penalty Percentage (%) *
@@ -1043,18 +426,18 @@ const ContributionMetrics: React.FC = () => {
                   <p className="mt-1 text-xs text-gray-600">Penalty applied for late contributions</p>
                 </div>
 
-                {/* Payload preview */}
+                {/* Payload preview matching backend format */}
                 {formData.dueDayOfMonth && formData.contributionAmount && formData.penaltyPercentage && (
                   <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
                     <p className="text-xs text-gray-500 font-medium mb-1">
-                      POST /tujipange/api/v1/contributions_management/metrics
+                      Request Body (matches backend schema)
                     </p>
-                    <pre className="text-xs font-mono text-gray-700">
+                    <pre className="text-xs font-mono text-gray-700 bg-white p-2 rounded border">
 {JSON.stringify({
   periodEnum: formData.periodEnum,
-  dueDayOfMonth: parseInt(formData.dueDayOfMonth, 10) || '',
-  contributionAmount: parseFloat(formData.contributionAmount) || '',
-  penaltyPercentage: parseFloat(formData.penaltyPercentage) || '',
+  dueDayOfMonth: parseInt(formData.dueDayOfMonth, 10),
+  contributionAmount: parseFloat(formData.contributionAmount),
+  penaltyPercentage: parseFloat(formData.penaltyPercentage),
 }, null, 2)}
                     </pre>
                   </div>

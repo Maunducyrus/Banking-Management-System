@@ -1595,6 +1595,7 @@
 
 
 
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -1908,24 +1909,39 @@ interface DeferLoanModalProps {
 }
 
 const DeferLoanModal: React.FC<DeferLoanModalProps> = ({ isOpen, loanCode, onClose, onSuccess }) => {
-  const [extensionDays, setExtensionDays] = useState<number>(30);
+  const [extensionDays, setExtensionDays] = useState<string>('30');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const days = parseInt(extensionDays, 10);
+  const isValid = !isNaN(days) && days >= 1 && days <= 365;
+
+  // Compute new due date preview
+  const newDueDateLabel = isValid
+    ? new Date(Date.now() + days * 86400000).toLocaleDateString('en-KE', {
+        day: 'numeric', month: 'long', year: 'numeric',
+      })
+    : null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isValid) { setError('Extension days must be between 1 and 365'); return; }
     setLoading(true);
     setError(null);
-    
+    setSuccess(null);
+
     try {
-      // PUT /api/v1/loans/defer?extensionDays=X&loanCode=Y
-      await loanApi.deferLoan(loanCode, extensionDays);
-      toast.success(`Loan deferred by ${extensionDays} days!`);
+      // GET /tujipange/api/v1/loans/defer?extensionDays=X&loanCode=Y
+      await loanApi.deferLoan(loanCode, days);
+      setSuccess(`Loan deferred by ${days} day${days !== 1 ? 's' : ''}!`);
+      toast.success(`Loan ${loanCode} deferred by ${days} days!`);
       onSuccess();
-      onClose();
+      setTimeout(onClose, 1200);
     } catch (err: any) {
-      setError(err.message || 'Failed to defer loan');
-      toast.error(err.message || 'Failed to defer loan');
+      const msg = err.message || 'Failed to defer loan';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -1936,50 +1952,83 @@ const DeferLoanModal: React.FC<DeferLoanModalProps> = ({ isOpen, loanCode, onClo
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+        {/* Header */}
         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
           <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <Calendar size={20} className="text-orange-600" /> Defer Loan
+            <Calendar size={20} className="text-orange-600" /> Defer Loan Repayment
           </h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <X size={20} />
           </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-              {error}
-            </div>
-          )}
-          
-          <div>
-            <p className="text-sm text-gray-600 mb-2">
-              Loan Code: <span className="font-medium">{loanCode}</span>
+          {/* Loan identity */}
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+            <p className="text-xs text-orange-700 font-medium uppercase tracking-wide mb-1">Loan</p>
+            <p className="text-sm font-bold text-orange-900">{loanCode}</p>
+            <p className="text-xs text-orange-600 mt-0.5">
+              Endpoint: GET /tujipange/api/v1/loans/defer?extensionDays={'{days}'}&amp;loanCode={'{code}'}
             </p>
           </div>
-          
+
+          {/* Error / success */}
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-start gap-2">
+              <AlertCircle size={14} className="mt-0.5 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+          {success && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 flex items-start gap-2">
+              <CheckCircle size={14} className="mt-0.5 shrink-0" />
+              <span>{success}</span>
+            </div>
+          )}
+
+          {/* Extension days input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Extension Days *
+              Extension Days <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
               value={extensionDays}
-              onChange={(e) => setExtensionDays(parseInt(e.target.value) || 0)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              onChange={(e) => { setExtensionDays(e.target.value); setError(null); }}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-transparent"
               min="1"
               max="365"
               required
             />
-            <p className="mt-1 text-xs text-gray-500">Number of days to extend the loan repayment period</p>
+            <p className="mt-1 text-xs text-gray-500">Between 1 and 365 days</p>
           </div>
-          
+
+          {/* Live preview */}
+          {isValid && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Extension:</span>
+                <span className="font-semibold text-orange-700">+{days} day{days !== 1 ? 's' : ''}</span>
+              </div>
+              {newDueDateLabel && (
+                <div className="flex justify-between mt-1">
+                  <span className="text-gray-600">Approx. new date:</span>
+                  <span className="font-semibold text-gray-800">{newDueDateLabel}</span>
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-            <Button variant="ghost" type="button" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading} className="bg-orange-600 hover:bg-orange-700 text-white">
-              {loading ? 'Processing...' : 'Defer Loan'}
+            <Button variant="ghost" type="button" onClick={onClose}>Cancel</Button>
+            <Button
+              type="submit"
+              disabled={loading || !isValid}
+              className="bg-orange-600 hover:bg-orange-700 text-white disabled:opacity-50"
+            >
+              {loading
+                ? <><RefreshCw size={14} className="animate-spin mr-2 inline" />Processing…</>
+                : `Defer ${isValid ? days : ''} Day${days !== 1 ? 's' : ''}`}
             </Button>
           </div>
         </form>
@@ -1998,35 +2047,47 @@ interface RepayLoanModalProps {
 }
 
 const RepayLoanModal: React.FC<RepayLoanModalProps> = ({ isOpen, loanCode, currentBalance = 0, onClose, onSuccess }) => {
-  const [amount, setAmount] = useState<number>(currentBalance);
+  const [amountStr, setAmountStr] = useState<string>(String(currentBalance));
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  // Reset amount when modal opens with new balance
+  useEffect(() => {
+    if (isOpen) { setAmountStr(String(currentBalance)); setError(null); setSuccess(null); }
+  }, [isOpen, currentBalance]);
+
+  const amount = parseFloat(amountStr);
+  const isValid = !isNaN(amount) && amount > 0 && amount <= currentBalance;
+  const remaining = isNaN(amount) ? currentBalance : Math.max(0, currentBalance - amount);
+  const isFullRepay = isValid && Math.abs(amount - currentBalance) < 0.01;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!amount || amount <= 0) {
-      toast.error('Please enter a valid amount');
+    if (!isValid) {
+      setError(amount > currentBalance
+        ? `Amount cannot exceed outstanding balance of ${fmt(currentBalance)}`
+        : 'Please enter a valid amount greater than 0');
       return;
     }
-    
-    if (amount > currentBalance) {
-      toast.error(`Amount cannot exceed current balance of ${fmt(currentBalance)}`);
-      return;
-    }
-
     setLoading(true);
     setError(null);
-    
+    setSuccess(null);
+
     try {
-      // POST /api/v1/loans/repay — Repay a loan
+      // GET /tujipange/api/v1/loans/repay?loanCode=X&amount=Y
+      // Note: Postman repay-loan entry has no URL yet — using GET query-param pattern
+      // consistent with deferLoan. Update api.ts repayLoan() if backend uses POST.
       await loanApi.repayLoan({ loanCode, amount });
-      toast.success(`Repayment of ${fmt(amount)} successful!`);
+      const msg = `Repayment of ${fmt(amount)} processed successfully!`;
+      setSuccess(msg);
+      toast.success(msg);
       onSuccess();
-      onClose();
+      setTimeout(onClose, 1200);
     } catch (err: any) {
-      setError(err.message || 'Failed to process repayment');
-      toast.error(err.message || 'Failed to process repayment');
+      const msg = err.message || 'Failed to process repayment';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
@@ -2037,42 +2098,60 @@ const RepayLoanModal: React.FC<RepayLoanModalProps> = ({ isOpen, loanCode, curre
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+        {/* Header */}
         <div className="p-6 border-b border-gray-200 flex items-center justify-between">
           <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-            <DollarSign size={20} className="text-green-600" /> Repay Loan
+            <DollarSign size={20} className="text-green-600" /> Loan Repayment
           </h3>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition-colors">
             <X size={20} />
           </button>
         </div>
-        
+
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          {/* Loan identity + balance */}
+          <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-xs text-green-700 font-medium uppercase tracking-wide">Loan</p>
+                <p className="text-sm font-bold text-green-900">{loanCode}</p>
+                <p className="text-xs text-green-600 mt-0.5">
+                  Endpoint: GET /tujipange/api/v1/loans/repay?loanCode={'{code}'}&amp;amount={'{amount}'}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs text-green-700 font-medium uppercase tracking-wide">Outstanding</p>
+                <p className="text-lg font-bold text-green-900">{fmt(currentBalance)}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Error / success */}
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-              {error}
+            <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 flex items-start gap-2">
+              <AlertCircle size={14} className="mt-0.5 shrink-0" />
+              <span>{error}</span>
             </div>
           )}
-          
-          <div>
-            <p className="text-sm text-gray-600 mb-2">
-              Loan Code: <span className="font-medium">{loanCode}</span>
-            </p>
-            <p className="text-sm text-gray-600 mb-4">
-              Outstanding Balance: <span className="font-bold text-gray-900">{fmt(currentBalance)}</span>
-            </p>
-          </div>
-          
+          {success && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700 flex items-start gap-2">
+              <CheckCircle size={14} className="mt-0.5 shrink-0" />
+              <span>{success}</span>
+            </div>
+          )}
+
+          {/* Amount input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Repayment Amount (KES) *
+              Repayment Amount (KES) <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <DollarSign size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
               <input
                 type="number"
-                value={amount || ''}
-                onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                value={amountStr}
+                onChange={(e) => { setAmountStr(e.target.value); setError(null); }}
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
                 placeholder="Enter amount"
                 min="1"
                 max={currentBalance}
@@ -2080,15 +2159,44 @@ const RepayLoanModal: React.FC<RepayLoanModalProps> = ({ isOpen, loanCode, curre
                 required
               />
             </div>
-            <p className="mt-1 text-xs text-gray-500">Maximum: {fmt(currentBalance)}</p>
+            <div className="mt-1 flex justify-between text-xs text-gray-500">
+              <span>Max: {fmt(currentBalance)}</span>
+              <button
+                type="button"
+                className="text-green-600 hover:text-green-800 font-medium underline"
+                onClick={() => { setAmountStr(String(currentBalance)); setError(null); }}
+              >
+                Pay full balance
+              </button>
+            </div>
           </div>
-          
+
+          {/* Repayment summary preview */}
+          {isValid && (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 space-y-1.5 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Amount to pay:</span>
+                <span className="font-semibold text-gray-900">{fmt(amount)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Balance after:</span>
+                <span className={`font-semibold ${isFullRepay ? 'text-green-600' : 'text-gray-900'}`}>
+                  {isFullRepay ? 'FULLY SETTLED ✓' : fmt(remaining)}
+                </span>
+              </div>
+            </div>
+          )}
+
           <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-            <Button variant="ghost" type="button" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading} className="bg-green-600 hover:bg-green-700 text-white">
-              {loading ? 'Processing...' : 'Make Repayment'}
+            <Button variant="ghost" type="button" onClick={onClose}>Cancel</Button>
+            <Button
+              type="submit"
+              disabled={loading || !isValid}
+              className="bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
+            >
+              {loading
+                ? <><RefreshCw size={14} className="animate-spin mr-2 inline" />Processing…</>
+                : isFullRepay ? 'Settle in Full' : `Pay ${isValid ? fmt(amount) : ''}`}
             </Button>
           </div>
         </form>
@@ -2334,7 +2442,6 @@ export const LoansList: React.FC = () => {
               </thead>
               <tbody>
                 {filteredLoans.map((loan) => {
-                  // const { isActive, isPending, isClosed, isDefaulted } = getStatusActions(loan);
                   const { isActive, isPending, isClosed, isDefaulted, isDeferred } = getStatusActions(loan);
                   const totalBalance = (loan.balancePrincipal ?? 0) + (loan.balanceInterest ?? 0);
                   

@@ -892,8 +892,16 @@ export const loanApi = {
   listMemberLoans:     (memberNumber: string)                 => apiFetch<any>(`/tujipange/api/v1/loans/member/${encodeURIComponent(memberNumber)}`, {}, true),
   getLoanDetailsByCode:(loanCode: string)                     => apiFetch<any>(`/tujipange/api/v1/loans/${encodeURIComponent(loanCode)}`, {}, true),
   getLoanStatus:       (loanCode: string)                     => apiFetch<any>(`/tujipange/api/v1/loans/status?loanCode=${encodeURIComponent(loanCode)}`, {}, true),
-  deferLoan:           (loanCode: string, extensionDays: number) => apiFetch<any>(`/tujipange/api/v1/loans/defer?extensionDays=${extensionDays}&loanCode=${encodeURIComponent(loanCode)}`, { method: 'PUT' }, true),
-  repayLoan:           (payload: { loanCode: string; amount: number }) => apiFetch<any>('/tujipange/api/v1/loans/repay', { method: 'POST', body: JSON.stringify(payload) }, true),
+  // deferLoan:           (loanCode: string, extensionDays: number) => apiFetch<any>(`/tujipange/api/v1/loans/defer?extensionDays=${extensionDays}&loanCode=${encodeURIComponent(loanCode)}`, { method: 'PUT' }, true),
+  deferLoan: (loanCode: string, extensionDays: number) => apiFetch<any>(`/tujipange/api/v1/loans/defer?extensionDays=${extensionDays}&loanCode=${encodeURIComponent(loanCode)}`, { method: 'GET' }, true),
+
+  // repayLoan:           (payload: { loanCode: string; amount: number }) => apiFetch<any>('/tujipange/api/v1/loans/repay', { method: 'POST', body: JSON.stringify(payload) }, true),
+  repayLoan: (payload: { loanCode: string; amount: number }) =>
+  apiFetch<any>(
+    `/tujipange/api/v1/loans/repay?loanCode=${encodeURIComponent(payload.loanCode)}&amount=${payload.amount}`,
+    { method: 'GET' },
+    true
+  ),
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -917,7 +925,7 @@ export const loanProductApi = {
 // CONTRIBUTION METRICS
 // ─────────────────────────────────────────────────────────────────────────────
 export interface AddContributionMetricPayload    { periodEnum: 'MONTHLY' | 'WEEKLY' | 'YEARLY'; dueDayOfMonth: number; contributionAmount: number; penaltyPercentage: number; }
-export interface UpdateContributionMetricPayload { dueDayOfMonth?: number; contributionAmount?: number; penaltyPercentage?: number; metricStatus?: boolean; }
+export interface UpdateContributionMetricPayload { dueDayOfMonth?: number; contributionAmount?: number; penaltyPercentage?: number; metricStatus?: boolean | string; }
 
 export const contributionMetricApi = {
   addMetric:     (payload: AddContributionMetricPayload)            => apiFetch<any>('/tujipange/api/v1/contributions_management/metrics', { method: 'POST', body: JSON.stringify(payload) }, true),

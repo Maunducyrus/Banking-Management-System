@@ -1366,9 +1366,15 @@ export const LoanProducts: React.FC = () => {
         name:   searchTerm   || undefined,
       };
       const res = await loanProductApi.listProducts(params);
+
+      //Debugging
       console.log('[LoanProducts] raw response:', res);
       const list = extractProductList(res);
+
+      // Debugging
       console.log('[LoanProducts] extracted list:', list);
+      console.log('[LoanProducts] first product raw:', JSON.stringify(list[0], null, 2));
+
       setProducts(list);
     } catch (err: any) {
       setError(err.message || 'Failed to fetch loan products');
@@ -1415,7 +1421,11 @@ export const LoanProducts: React.FC = () => {
       loanPeriod:      parseInt(form.loanPeriod, 10),
     };
 
+    // Debugging
+
     console.log('[LoanProducts] Submitting payload:', payload);
+    console.log('Sending payload to API:', JSON.stringify(payload, null, 2));
+
 
     if (!payload.loanProductName) { toast.error('Product name is required'); return; }
     if (isNaN(payload.percentage) || payload.percentage <= 0) {
@@ -1701,7 +1711,9 @@ export const LoanProducts: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((p, i) => (
+                {filtered.map((p, i) => {
+
+                  return (
                   <tr key={p.id ?? p.productCode ?? i}
                     className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
 
@@ -1767,7 +1779,8 @@ export const LoanProducts: React.FC = () => {
                       </div>
                     </td>
                   </tr>
-                ))}
+                );
+              })}
               </tbody>
             </table>
           </div>
