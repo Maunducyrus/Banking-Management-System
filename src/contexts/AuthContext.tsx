@@ -229,7 +229,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           console.log(`[AuthContext] Token expires at: ${expiresAt}`);
         } catch (_) {}
 
-        const isAdmin = email === 'itsdevelelopernic22@gmail.com';
+        const isAdmin = email === 'itsdevelopernic22@gmail.com';
 
         const userObj: User = {
           id:        email,
