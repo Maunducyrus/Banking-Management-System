@@ -57,7 +57,7 @@ export const LoginForm: React.FC = () => {
   };
 
   const fillDemo = () => {
-    setEmail('itsdevelelopernic22@gmail.com');
+    setEmail('itsdevelopernic22@gmail.com');
     setPassword('123$Nick.');
     setLoginError('');
   };
@@ -199,7 +199,7 @@ export const LoginForm: React.FC = () => {
                     onClick={fillDemo}
                     className="w-full py-2 text-xs text-blue-300 hover:text-white hover:bg-white/5 rounded-xl transition border border-white/10"
                   >
-                    itsdevelelopernic22@gmail.com
+                    itsdevelopernic22@gmail.com
                   </button>
                 </div>
               </form>
