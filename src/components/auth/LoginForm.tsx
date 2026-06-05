@@ -109,8 +109,8 @@ export const LoginForm: React.FC = () => {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 shadow-lg shadow-blue-600/40 mb-4">
             <Shield className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">Tujipange</h1>
-          <p className="text-blue-300 text-sm mt-1">P2P Welfare Management System</p>
+          <h1 className="text-3xl font-bold text-white tracking-tight">HRWS</h1>
+          <p className="text-blue-300 text-sm mt-1">Welfare Management System</p>
         </div>
 
         {/* Card */}
@@ -310,7 +310,7 @@ export const LoginForm: React.FC = () => {
         </div>
 
         <p className="text-center text-blue-400/50 text-xs mt-6">
-          © {new Date().getFullYear()} Tujipange Welfare System
+          Ikuwe © {new Date().getFullYear()} Welfare System
         </p>
       </div>
     </div>
