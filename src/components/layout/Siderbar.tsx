@@ -70,7 +70,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <div className="bg-gray-900 text-white w-64 min-h-screen flex flex-col">
       {/* Logo/Header */}
       <div className="p-6 border-b border-gray-700">
-        <h1 className="text-xl font-bold text-white">P2P Loan Manager</h1>
+        <h1 className="text-xl font-bold text-white">HRWS</h1>
         <p className="text-gray-400 text-sm mt-1">
           {user?.firstName} {user?.lastName}
         </p>
